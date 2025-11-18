@@ -1,0 +1,44 @@
+# High Contrast Light Theme for Helix
+
+"ui.background" = { bg = "white" }
+"ui.text" = { fg = "black" }
+"ui.cursor" = { fg = "white", bg = "black" }
+"ui.selection" = { fg = "black", bg = "light_gray" }
+"ui.selection.primary" = { bg = "gray" }
+"ui.line-number" = { fg = "dark_gray" }
+'ui.statusline.normal' = { fg = "black", bg = "gray" }
+"ui.statusline.insert" = { fg = "black", bg = "red" }
+"ui.statusline.select" = { fg = "black", bg = "green" }
+"ui.menu" = { fg = "black", bg = "light_gray" }
+"ui.menu.selected" = { bg = "gray" }
+
+"comment" = { fg = "dark_gray" }
+"keyword" = { fg = "dark_blue" }
+"string" = { fg = "red" }
+"number" = { fg = "green" }
+"function" = { fg = "brown" }
+"variable" = { fg = "blue" }
+"type" = { fg = "cyan" }
+"constant" = { fg = "purple" }
+"operator" = { fg = "black" }
+"attribute" = { fg = "cyan" }
+"namespace" = { fg = "cyan" }
+"macro" = { fg = "brown" }
+"builtin" = { fg = "brown" }
+"punctuation" = { fg = "black" }
+"error" = { fg = "red" }
+
+[palette]
+black = "#000000"
+white = "#FFFFFF"
+gray = "#7C7C7C"
+blue = "#569CD6"
+orange = "#CE9178"
+green = "#B5CEA8"
+yellow = "#DCDCAA"
+light_blue = "#9CDCFE"
+teal = "#4EC9B0"
+purple = "#C586C0"
+red = "#F44747"
+dark_gray = "#1E1E1E"
+light_gray = "#F3F3F3"

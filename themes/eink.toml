@@ -1,0 +1,32 @@
+# Eink theme for Helix - light, high contrast theme for eink displays using xterm 256 colors
+
+inherits = "default"
+
+[ui]
+background = "#ffffff"
+foreground = "#000000"
+cursor = "#000000"
+selection = "#d0d0d0"
+
+[diagnostic]
+error = "#ff0000"
+warning = "#ff8800"
+info = "#0000ff"
+hint = "#888888"
+
+[syntax]
+keyword = "#000080"
+type = "#008000"
+function = "#800080"
+string = "#008080"
+comment = "#808080"
+variable = "#000000"
+constant = "#800000"
+number = "#000080"
+operator = "#000000"
+attribute = "#800080"
+namespace = "#008000"
+module = "#008000"
+macro = "#800080"
+label = "#000080"
+special = "#800080"
