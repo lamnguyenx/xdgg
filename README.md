@@ -2,6 +2,12 @@
 
 This is my personal Helix editor configuration.
 
+## Themes
+
+Includes two high contrast themes based on VSCode:
+- `hcl`: High Contrast Light
+- `hcd`: High Contrast Dark
+
 ## Installation
 
 1. Backup your current Helix config if you have one:
