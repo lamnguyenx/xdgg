@@ -6,9 +6,17 @@ set -Eeuo pipefail
 CONFIG_DIR="${1:?Config directory required}"
 ARCHIVE_DIR="$HOME/.config/__archives__"
 
-# Skip if directory doesn't exist
-if [ ! -d "$CONFIG_DIR" ]; then
-    echo "Warning: $CONFIG_DIR does not exist, skipping archive"
+# Skip if path doesn't exist
+if [ ! -e "$CONFIG_DIR" ]; then
+    DISPLAY_DIR="${CONFIG_DIR//$HOME/~}"
+    echo "Warning: $DISPLAY_DIR does not exist, skipping archive"
+    exit 0
+fi
+
+# Skip if it's already a symlink
+if [ -L "$CONFIG_DIR" ]; then
+    DISPLAY_DIR="${CONFIG_DIR//$HOME/~}"
+    echo "Info: $DISPLAY_DIR is already a symlink, skipping archive"
     exit 0
 fi
 
