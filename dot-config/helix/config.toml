@@ -3,6 +3,7 @@ theme = "hcl"
 [editor]
 text-width = 80
 soft-wrap.enable = true
+bufferline = "always"
 
 [editor.statusline]
 right = ["diagnostics", "selections", "position", "total-line-numbers", "file-encoding"]
