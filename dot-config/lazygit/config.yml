@@ -1,0 +1,16 @@
+gui:
+  theme:
+    selectedLineBgColor:
+      - reverse
+
+customCommands:
+  - key: 'D'
+    command: git diff {{.SelectedFile.Name}} | delta --light --side-by-side --line-numbers
+    context: files
+    description: Open file diff in delta (side-by-side, eink-friendly)
+    output: terminal
+  - key: 'D'
+    command: git diff {{.SelectedFile.Name}} | delta --light --side-by-side --line-numbers
+    context: commitFiles
+    description: Open file diff in delta (side-by-side, eink-friendly)
+    output: terminal

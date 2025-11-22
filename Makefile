@@ -1,6 +1,6 @@
-.PHONY: all helix tmux termux
+.PHONY: all helix tmux termux lazygit
 
-all: helix tmux termux
+all: helix tmux termux lazygit
 
 helix:
 	@bash ./local/archive.sh ~/.config/helix
@@ -24,3 +24,10 @@ termux:
 	@bash ./local/echo_banner.sh "Termux"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.termux
+
+lazygit:
+	@bash ./local/archive.sh ~/.config/lazygit
+	@ln -sf "$(shell pwd)/dot-config/lazygit" ~/.config/lazygit
+	@bash ./local/echo_banner.sh "Lazygit"
+	@echo "Symlinks:"
+	@bash ./local/show_symlinks.sh ~/.config/lazygit
