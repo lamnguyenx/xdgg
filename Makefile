@@ -1,16 +1,16 @@
-.PHONY: help all helix tmux termux lazygit amp
+.PHONY: help all helix tmux termux lazygit amp opencode
 
 help:
 	@echo "Configuration Setup"
 	@echo "=================="
 	@echo ""
-	@echo "Run 'make <amp|tmux|helix|termux|lazygit>' to install specific config"
+	@echo "Run 'make <amp|opencode|tmux|helix|termux|lazygit>' to install specific config"
 	@echo "Or run 'make all' to install all configurations"
 	@echo ""
 	@echo "WARNING: Do NOT move this directory. All configs use symlinks that will break if this folder is relocated."
 	@echo ""
 
-all: helix tmux termux lazygit amp
+all: helix tmux termux lazygit amp opencode
 
 helix:
 	@bash ./local/archive.sh ~/.config/helix
@@ -49,3 +49,11 @@ amp:
 	@bash ./local/echo_banner.sh "Amp"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/amp
+
+opencode:
+	@bash ./local/archive.sh ~/.config/opencode/command
+	@mkdir -p ~/.config/opencode
+	@ln -sf "$(shell pwd)/__submodules__/humanlayer2/.claude/commands" ~/.config/opencode/command
+	@bash ./local/echo_banner.sh "OpenCode"
+	@echo "Symlinks:"
+	@bash ./local/show_symlinks.sh ~/.config/opencode/command
