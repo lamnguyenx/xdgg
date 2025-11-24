@@ -137,3 +137,8 @@ function log_green()   { (separate_heading "$@"; printf "%s" "$(log_date)$(echo_
 function log_yellow()  { (separate_heading "$@"; printf "%s" "$(log_date)$(echo_bold_cyan $p_level_tag)$(echo_bold_yellow "$1")"; shift; echo " $@";) >&2; }
 function log_gray()    { (separate_heading "$@"; printf "%s" "$(log_date)$(echo_bold_cyan $p_level_tag)$(echo_bold_gray   "$1")"; shift; echo " $@";) >&2; }
 function log_cyan()    { (separate_heading "$@"; printf "%s" "$(log_date)$(echo_bold_cyan $p_level_tag)$(echo_bold_cyan   "$1")"; shift; echo " $@";) >&2; }
+function log_error()   { log_red    "[ERROR] $*" >&2; }
+function log_warning() { log_yellow "[WARNING] $*" >&2; }
+function log_info()    { log        "[INFO] $*" >&2; }
+function log_debug()   { log_gray   "[DEBUG] $*" >&2; }
+function log_ok()      { log_green  "[OK] $*" >&2; }

@@ -1,7 +1,155 @@
 #!/bin/bash
 # --------------------------------------------------------------
-#                          miscs
+#                         common
 # --------------------------------------------------------------
+# Consolidated common utilities for development environment
+# Contains essentials, args, proxies, and misc functions
+
+# ===================================
+#            ESSENTIALS
+# ===================================
+
+function reload_voice_bashrc() {
+    source /data/docker/hanoi_it/voice.bashrc.sh
+}
+
+function get_host_ip() {
+    echo "${HOST_IP:-$(ipconfig getifaddr en0 || ipconfig getifaddr en1 || hostname -I | awk '{print $1}')}"
+}
+
+export HOST_IP=$(get_host_ip)
+export USER=${USER:-"$(id -un)"}
+export UID
+export GID=$(id -g)
+export PATH="$HOME/.local/bin:/data/docker/hanoi_it/bin:$PATH"
+export MAVEN_MIRROR="http://${HOST_IP}:8888/repository/maven-public"
+
+# ===================================
+#              ARGS
+# ===================================
+
+function parse_args() {
+  local -a remaining_args=()
+
+  # Process all arguments
+  while [[ $# -gt 0 ]]; do
+      case $1 in
+          --dry)
+              if [[ $2 =~ ^(true|false)$ ]]; then
+                  # --dry true/false
+                  dry="$2"
+                  shift 2
+              elif [[ $2 && ! $2 =~ ^-- ]]; then
+                  # --dry followed by non-flag argument, treat as flag only
+                  dry="true"
+                  shift 1
+              else
+                  # --dry without value or followed by another flag
+                  dry="true"
+                  shift 1
+              fi
+              ;;
+          --live)
+              if [[ $2 =~ ^(true|false)$ ]]; then
+                  # --live true/false
+                  live="$2"
+                  shift 2
+              elif [[ $2 && ! $2 =~ ^-- ]]; then
+                  # --live followed by non-flag argument, treat as flag only
+                  live="true"
+                  shift 1
+              else
+                  # --live without value or followed by another flag
+                  live="true"
+                  shift 1
+              fi
+              ;;
+          --config)
+              if [[ -z "$2" || "$2" =~ ^-- ]]; then
+                  echo "Error: --config requires a filename" >&2
+                  return 1
+              fi
+              local config_file="$2"
+              if [[ -f "$config_file" ]]; then
+                  source "$config_file"
+              else
+                  echo "Error: Config file '$config_file' not found" >&2
+                  return 1
+              fi
+              shift 2
+              ;;
+          --help|-h)
+              return 1  # This will trigger help display in main function
+              ;;
+          --*)
+              echo "Error: Unknown option $1" >&2
+              return 1
+              ;;
+          *)
+              # Positional argument - save it
+              remaining_args+=("$1")
+              shift 1
+              ;;
+      esac
+  done
+
+  # Replace the original arguments with remaining ones
+  set -- "${remaining_args[@]}"
+  return 0
+}
+
+# ===================================
+#            PROXIES
+# ===================================
+
+function urlencode() {
+  local string="$1"
+  local strlen=${#string}
+  local encoded=""
+  local pos c o
+
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+     c=${string:$pos:1}
+     case "$c" in
+        [-_.~a-zA-Z0-9] ) o="${c}" ;;
+        * )               printf -v o '%%%02x' "'$c"
+     esac
+     encoded+="${o}"
+  done
+  echo "${encoded}"
+}
+
+function unset_proxy() {
+
+    unset http_proxy
+    unset HTTP_PROXY
+    unset https_proxy
+    unset HTTPS_PROXY
+    unset socks_proxy
+    unset SOCKS_PROXY
+    unset REQUESTS_CA_BUNDLE
+    unset NODE_EXTRA_CA_CERTS
+    unset NO_PROXY
+}
+
+function remove_proxy() { unset_proxy; }
+
+
+
+function set_legacy_proxy() {
+    unset_proxy
+    # legacy proxy, used to install pip, conda packages
+    # more restricted that s5 proxy, but might useful on CI/CD servers
+    export http{,s}_proxy="http://$(get_host_ip):7126"
+    export HTTP{,S}_PROXY="http://$(get_host_ip):7126"
+    export NO_PROXY="localhost,127.0.0.1,0.0.0.0,.local,.internal,.sslip.io"
+
+    print_proxy
+}
+
+# ===================================
+#             MISC
+# ===================================
 
 function print_proxy() {
 
@@ -93,13 +241,13 @@ function rename_easy() {
             local new_basename="${basename//$source_string/$target_string}"
             local new_path="$dirname/$new_basename"
 
-            log "src:" "$item"
-            log "tgt:" "$new_path"
+            log_info "src:" "$item"
+            log_info "tgt:" "$new_path"
             mv "$item" "$new_path"
             if [ $? -eq 0 ]; then
-                log_green "✓ OK"
+                log_ok "✓ OK"
             else
-                log_red "✗ FAILED"
+                log_error "✗ FAILED"
             fi
         fi
     }
@@ -127,13 +275,13 @@ function rename_easy() {
         local new_input_basename="${input_basename//$source_string/$target_string}"
         local new_input_dir="$input_dirname/$new_input_basename"
 
-        log "src:" "$input_dir"
-        log "tgt:" "$new_input_dir"
+        log_info "src:" "$input_dir"
+        log_info "tgt:" "$new_input_dir"
         mv "$input_dir" "$new_input_dir"
         if [ $? -eq 0 ]; then
-            log_green "✓ OK"
+            log_ok "✓ OK"
         else
-            log_red "✗ FAILED"
+            log_error "✗ FAILED"
         fi
     fi
 
@@ -165,4 +313,16 @@ elif command -v paplay &>/dev/null; then
     alias noti="(paplay /usr/share/sounds/freedesktop/stereo/complete.oga &>/dev/null &)"
 elif command -v aplay &>/dev/null; then
     alias noti="(aplay /usr/share/sounds/alsa/Front_Center.wav &>/dev/null &)"
+fi
+
+# ===================================
+#            PROJECTS
+# ===================================
+
+if [[ -f .project.sh ]]; then
+    source .project.sh
+fi
+
+if [[ -f .project-untracked.sh ]]; then
+    source .project-untracked.sh
 fi

@@ -8,43 +8,34 @@
 # Calculate script directory once
 bax_dir="$(dirname "${BASH_SOURCE[0]}")"
 
-# Core modules - always loaded
-    source "$bax_dir/essentials.sh"
-    source "$bax_dir/args.sh"
-    source "$bax_dir/logging.sh"
-    source "$bax_dir/misc.sh"
+# Define module arrays for better maintainability
+CORE_MODULES=("common.sh" "logging.sh")
+APP_MODULES=("docker.sh" "git.sh" "homebrew.sh")
+PROJECT_MODULES=("terminal.sh")
 
-# Proxies module - contains sensitive credentials, load conditionally
-# Uncomment the following line if you need proxy functionality:
-    # source "$bax_dir/proxies.sh"
+# Function to source all modules
+source_modules() {
+    # Core modules - always loaded
+    for module in "${CORE_MODULES[@]}"; do
+        source "$bax_dir/$module"
+    done
 
-# Application-specific modules
-    source "$bax_dir/docker.sh"
-    source "$bax_dir/git.sh"
-    source "$bax_dir/homebrew.sh"
+    # Application-specific modules
+    for module in "${APP_MODULES[@]}"; do
+        source "$bax_dir/$module"
+    done
 
-# Project and terminal setup
-    source "$bax_dir/projects.sh"
-    source "$bax_dir/terminal.sh"
+    # Project and terminal setup
+    for module in "${PROJECT_MODULES[@]}"; do
+        source "$bax_dir/$module"
+    done
+}
 
-# Updated reload function to reload all modules
+# Initial module loading
+source_modules
+
+# Reload function to reload all modules
 function reload_bax() {
-    # script_dir is already defined globally as bax_dir
-
-    # Reload all modules
-source "$bax_dir/essentials.sh"
-source "$bax_dir/args.sh"
-source "$bax_dir/logging.sh"
-source "$bax_dir/misc.sh"
-
-    # Conditional proxy loading (commented by default for security)
-# source "$bax_dir/proxies.sh"
-
-source "$bax_dir/docker.sh"
-source "$bax_dir/git.sh"
-source "$bax_dir/homebrew.sh"
-source "$bax_dir/projects.sh"
-source "$bax_dir/terminal.sh"
-
+    source_modules
     echo "✅ All bax modules reloaded"
 }

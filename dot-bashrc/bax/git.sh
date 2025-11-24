@@ -71,8 +71,8 @@ function gl() {
 
     # Validate argument count
     if [[ $# -gt 1 ]]; then
-        echo "Error: Too many arguments. Expected 0 or 1 argument." >&2
-        echo "Use 'gl --help' for usage information." >&2
+        log_error "Too many arguments. Expected 0 or 1 argument."
+        log_error "Use 'gl --help' for usage information."
         return 1
     fi
 
@@ -130,8 +130,8 @@ function gl_quick_jump() {
 
     # Validate numeric input
     if [[ ! "$target_num" =~ ^[0-9]+$ ]]; then
-        echo "Error: Invalid argument '$target_num'. Expected a numeric index." >&2
-        echo "Use 'gl_quick_jump' without arguments for usage information." >&2
+        log_error "Invalid argument '$target_num'. Expected a numeric index."
+        log_error "Use 'gl_quick_jump' without arguments for usage information."
         return 1
     fi
 
@@ -139,7 +139,7 @@ function gl_quick_jump() {
     git_root=$(git rev-parse --show-toplevel 2>/dev/null)
 
     if [ $? -ne 0 ]; then
-        echo "Error: Not in a git repository" >&2
+        log_error "Not in a git repository"
         return 1
     fi
 
@@ -148,15 +148,15 @@ function gl_quick_jump() {
 
     # Validate target number range
     if [ "$target_num" -ge ${#GL_PATHS[@]} ]; then
-        echo "Error: Invalid index $target_num. Available range: 0-$((${#GL_PATHS[@]} - 1))" >&2
-        echo "Use 'gl' to see all available submodules." >&2
+        log_error "Invalid index $target_num. Available range: 0-$((${#GL_PATHS[@]} - 1))"
+        log_error "Use 'gl' to see all available submodules."
         return 1
     fi
 
     # Jump to target
     cd "${GL_PATHS[$target_num]}" || return 1
-    echo "✅ Jumped to: ${GL_PATHS[$target_num]}"
-    echo "📍 Path: ${GL_RELATIVE_PATHS[$target_num]}"
+    log_ok "✅ Jumped to: ${GL_PATHS[$target_num]}"
+    log_info "📍 Path: ${GL_RELATIVE_PATHS[$target_num]}"
 }
 
 function gl_search() {
@@ -199,8 +199,8 @@ function gl_search() {
 
     # Validate keyword is not empty
     if [[ -z "$keyword" ]]; then
-        echo "Error: Search keyword cannot be empty." >&2
-        echo "Use 'gl_search' without arguments for usage information." >&2
+        log_error "Search keyword cannot be empty."
+        log_error "Use 'gl_search' without arguments for usage information."
         return 1
     fi
 
@@ -208,7 +208,7 @@ function gl_search() {
     git_root=$(git rev-parse --show-toplevel 2>/dev/null)
 
     if [ $? -ne 0 ]; then
-        echo "Error: Not in a git repository" >&2
+        log_error "Not in a git repository"
         return 1
     fi
 
@@ -219,15 +219,15 @@ function gl_search() {
     for i in "${!GL_RELATIVE_PATHS[@]}"; do
         if [[ "${GL_RELATIVE_PATHS[$i]}" == *"$keyword"* ]]; then
             cd "${GL_PATHS[$i]}" || return 1
-            echo "✅ Found and jumped to: ${GL_PATHS[$i]}"
-            echo "🔍 Matched: ${GL_RELATIVE_PATHS[$i]}"
-            echo "📍 Index: $i"
+            log_ok "✅ Found and jumped to: ${GL_PATHS[$i]}"
+            log_info "🔍 Matched: ${GL_RELATIVE_PATHS[$i]}"
+            log_info "📍 Index: $i"
             return 0
         fi
     done
 
-    echo "❌ No submodule found matching keyword: '$keyword'" >&2
-    echo "💡 Use 'gl' to see all available submodules." >&2
+    log_error "❌ No submodule found matching keyword: '$keyword'"
+    log_info "💡 Use 'gl' to see all available submodules."
     return 1
 }
 
@@ -261,19 +261,19 @@ function gl_interactive() {
     git_root=$(git rev-parse --show-toplevel 2>/dev/null)
 
     if [ $? -ne 0 ]; then
-        echo "Error: Not in a git repository" >&2
+        log_error "Not in a git repository"
         return 1
     fi
 
     # Collect and display all submodules
-    echo "🔍 Scanning for git submodules..."
+    log_info "🔍 Scanning for git submodules..."
     gl_collect_all_submodules "$git_root"
 
     # If no submodules found
     if [ ${#GL_PATHS[@]} -eq 1 ]; then
         echo ""
-        echo "ℹ️  No submodules found in this repository."
-        echo "💡 This repository contains only the root directory."
+        log_info "ℹ️  No submodules found in this repository."
+        log_info "💡 This repository contains only the root directory."
         return 0
     fi
 
@@ -291,7 +291,7 @@ function gl_interactive() {
 
     # Handle empty input
     if [[ -z "$selection" ]]; then
-        echo "❌ No selection made. Operation cancelled." >&2
+        log_error "❌ No selection made. Operation cancelled."
         return 1
     fi
 
@@ -299,15 +299,15 @@ function gl_interactive() {
     if [[ "$selection" =~ ^[0-9]+$ ]]; then
         if [ "$selection" -lt ${#GL_PATHS[@]} ]; then
             cd "${GL_PATHS[$selection]}" || return 1
-            echo "✅ Changed directory to: ${GL_PATHS[$selection]}"
-            echo "📍 Path: ${GL_RELATIVE_PATHS[$selection]}"
+            log_ok "✅ Changed directory to: ${GL_PATHS[$selection]}"
+            log_info "📍 Path: ${GL_RELATIVE_PATHS[$selection]}"
         else
-            echo "❌ Invalid selection: $selection (valid range: 0-$((${#GL_PATHS[@]} - 1)))" >&2
+            log_error "❌ Invalid selection: $selection (valid range: 0-$((${#GL_PATHS[@]} - 1)))"
             return 1
         fi
     else
         # Handle keyword search
-        echo "🔍 Searching for keyword: '$selection'"
+        log_info "🔍 Searching for keyword: '$selection'"
         gl_search "$selection"
     fi
 }
@@ -526,13 +526,13 @@ function gl_display_by_levels() {
 function just_commit ()
 {
     message="${@:-"just committed"}";
-    git add . && git commit -m "/// $message" && echo "🦝: $message"
+    git add . && git commit -m "/// $message" && log_ok "🦝: $message"
 }
 
 function just_push ()
 {
     message="${@:-"just pushed"}";
-    git add . && git commit -m "/// $message" && git push && echo "🦝: $message"
+    git add . && git commit -m "/// $message" && git push && log_ok "🦝: $message"
 }
 
 
@@ -554,8 +554,8 @@ function just_commit_all ()
         if git diff --quiet && git diff --staged --quiet; then
             true  # No changes to commit
         else
-            echo "📁 Processing: $repo_path"
-            git commit -m "/// $commit_message" && echo "   🦝: $commit_message"
+            log_info "📁 Processing: $repo_path"
+            git commit -m "/// $commit_message" && log_ok "   🦝: $commit_message"
             echo ""
         fi
     }
@@ -568,7 +568,7 @@ function just_commit_all ()
 
     # Check if there are submodules
     if [ -f .gitmodules ]; then
-        echo "🔍 Found submodules, processing recursively..."
+        log_info "🔍 Found submodules, processing recursively..."
 
         # Get all submodule paths
         git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
@@ -580,8 +580,8 @@ function just_commit_all ()
 
         # Check if submodule commits created changes in main repo
         if ! git diff --quiet; then
-            echo "📦 Committing submodule updates in main repository..."
-            git add . && git commit -m "/// Updated submodules: $message" && echo "🦝: Updated submodules: $message"
+            log_info "📦 Committing submodule updates in main repository..."
+            git add . && git commit -m "/// Updated submodules: $message" && log_ok "🦝: Updated submodules: $message"
         fi
     else
         echo "ℹ️  No submodules found"
@@ -611,15 +611,15 @@ function just_push_all ()
             # No changes to commit, check if there are unpushed commits
             local unpushed=$(git log --oneline @{u}.. 2>/dev/null | wc -l)
             if [ "$unpushed" -gt 0 ]; then
-                echo "📁 Processing: $repo_name"
-                echo "   📤 Pushing $unpushed unpushed commit(s)..."
-                git push && echo "   🦝 Pushed: $repo_name"
+                log_info "📁 Processing: $repo_name"
+                log_info "   📤 Pushing $unpushed unpushed commit(s)..."
+                git push && log_ok "   🦝 Pushed: $repo_name"
                 echo ""
             fi
         else
             # Commit and push changes
-            echo "📁 Processing: $repo_name"
-            git commit -m "/// $push_message" && git push && echo "   🦝: $push_message"
+            log_info "📁 Processing: $repo_name"
+            git commit -m "/// $push_message" && git push && log_ok "   🦝: $push_message"
             echo ""
         fi
     }
@@ -632,7 +632,7 @@ function just_push_all ()
 
     # Check if there are submodules
     if [ -f .gitmodules ]; then
-        echo "🔍 Found submodules, processing recursively..."
+        log_info "🔍 Found submodules, processing recursively..."
 
         # Process all submodules
         git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
@@ -644,14 +644,14 @@ function just_push_all ()
 
         # Check if submodule commits created changes in main repo
         if ! git diff --quiet; then
-            echo "📦 Committing and pushing submodule updates in main repository..."
-            git add . && git commit -m "/// Updated submodules: $message" && git push && echo "🦝: Updated submodules: $message"
+            log_info "📦 Committing and pushing submodule updates in main repository..."
+            git add . && git commit -m "/// Updated submodules: $message" && git push && log_ok "🦝: Updated submodules: $message"
         else
             # Check for unpushed commits in main repo
             local unpushed=$(git log --oneline @{u}.. 2>/dev/null | wc -l)
             if [ "$unpushed" -gt 0 ]; then
-                echo "📤 Pushing unpushed commits in main repository..."
-                git push && echo "🦝 Main repo pushed"
+                log_info "📤 Pushing unpushed commits in main repository..."
+                git push && log_ok "🦝 Main repo pushed"
             fi
         fi
     else
@@ -683,13 +683,13 @@ function find_just_committed_all ()
             local commit_date=$(git log -1 --pretty=format:"%cr" HEAD)
             local author=$(git log -1 --pretty=format:"%an" HEAD)
 
-            echo "🦝 $repo_name"
-            echo "   💬 $head_message"
-            echo "   📍 $commit_hash by $author ($commit_date)"
+            log_info "🦝 $repo_name"
+            log_info "   💬 $head_message"
+            log_info "   📍 $commit_hash by $author ($commit_date)"
 
             if [[ "$show_details" == "true" || "$show_details" == "-v" ]]; then
-                echo "   📂 $repo_path"
-                echo "   🌿 $(git branch --show-current 2>/dev/null || echo 'detached HEAD')"
+                log_info "   📂 $repo_path"
+                log_info "   🌿 $(git branch --show-current 2>/dev/null || echo 'detached HEAD')"
             fi
             echo ""
             return 0
@@ -700,7 +700,7 @@ function find_just_committed_all ()
     local original_dir=$(pwd)
     local found_count=0
 
-    echo "🔍 Searching for repositories with '/// ' commits at current HEAD..."
+    log_info "🔍 Searching for repositories with '/// ' commits at current HEAD..."
     echo ""
 
     # Check main repository
@@ -720,23 +720,23 @@ function find_just_committed_all ()
     # Return to original directory
     cd "$original_dir"
 
-    echo "📊 Found $found_count repositories with '/// ' commits at current HEAD"
+    log_info "📊 Found $found_count repositories with '/// ' commits at current HEAD"
 }
 
 function remove_submodule() {
     local submodule_path="$1"
 
     if [ -z "$submodule_path" ]; then
-        echo "Usage: remove_submodule <submodule_path>"
+        log_info "Usage: remove_submodule <submodule_path>"
         return 1
     fi
 
     if [ ! -d "$submodule_path" ]; then
-        echo "Error: Submodule path '$submodule_path' does not exist"
+        log_error "Submodule path '$submodule_path' does not exist"
         return 1
     fi
 
-    echo "Removing submodule: $submodule_path"
+    log_info "Removing submodule: $submodule_path"
 
     # Step 1: Deinitialize the submodule
     git submodule deinit -f "$submodule_path"
@@ -752,8 +752,8 @@ function remove_submodule() {
     # Step 4: Clean up any remaining config
     git config --remove-section "submodule.$submodule_path" 2>/dev/null || true
 
-    echo "Submodule '$submodule_path' removed successfully"
-    echo "Don't forget to commit the changes!"
+    log_ok "Submodule '$submodule_path' removed successfully"
+    log_warning "Don't forget to commit the changes!"
 }
 
 function git_ls_large_objects() {
