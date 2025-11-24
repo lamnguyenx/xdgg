@@ -41,7 +41,16 @@ A terminal multiplexer for managing multiple shell sessions and windows within a
    - **Sync Panes**: `Prefix + Ctrl+s` - Toggle synchronized panes
    - **Save Session**: `Prefix + Shift+s` - Save tmux session (tmux-resurrect)
    - **Restore Session**: `Prefix + Shift+r` - Restore tmux session (tmux-resurrect)
-   - **Vim-style navigation** in copy mode (set mode-keys vi)
+    - **Vim-style navigation** in copy mode (set mode-keys vi)
+
+### Tmux Powerline
+A tmux plugin providing a customizable status bar with dynamic segments displaying system information, git status, and more.
+- **Appearance**: Powerline-style status bar with configurable segments and colors
+- **Behavior**: Dynamic status updates showing hostname, IP addresses, working directory, battery, date/time
+- **Platform note**: Works on all platforms supported by tmux, with e-ink optimized color scheme
+- **Segments**: Configurable left/right status bar segments (session info, hostname, LAN/WAN IP, pwd, battery, date/time)
+- **Theme**: Custom theme with high-contrast colors optimized for readability
+- **Configuration**: Managed via `dot-config/tmux-powerline/` with separate config and theme files
 
 ### Termux Environment
 Android-specific terminal configuration with custom colors, fonts, and terminal properties.
@@ -79,6 +88,7 @@ An AI-powered coding agent for the terminal. Provides intelligent code assistanc
 - **tmux-fzf**: Fuzzy finder integration for tmux
 - **tmux-resurrect**: Session persistence
 - **tmux-continuum**: Automatic session saving/restoring
+- **tmux-powerline**: Customizable status bar with dynamic segments
 
 ### Android/Termux Specific
 - **Termux**: Terminal emulator app
@@ -134,6 +144,13 @@ This project follows the [XDG Base Directory Specification](https://specificatio
     ln -s ~/.config/xdgg/dot-config/lazygit ~/.config/lazygit
     ln -s ~/.config/xdgg/dot-config/tmux ~/.config/tmux
     ln -s ~/.config/xdgg/dot-config/yazi ~/.config/yazi
+    ```
+
+    Or use the provided Makefile for automated setup:
+
+    ```bash
+    make helix lazygit tmux yazi  # Install specific configs
+    make all                      # Install all configs including tmux-powerline
     ```
 
 4. Setup Tmux Plugin Manager (TPM):
