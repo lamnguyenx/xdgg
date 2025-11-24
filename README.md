@@ -46,6 +46,13 @@ Android-specific terminal configuration with custom colors, fonts, and terminal 
 - **Behavior**: Optimized input/output handling for mobile devices
 - **Fonts**: Consolas Nerd Font for proper glyph rendering
 
+### OpenCode
+An AI-powered coding agent for the terminal. Provides intelligent code assistance with custom commands and automation.
+- **Appearance**: Interactive TUI with session management
+- **Behavior**: Execute custom commands to send predefined prompts to LLM
+- **Custom Commands**: Define reusable prompts as Markdown files or JSON config
+- **See**: [dot-config/opencode/README.md](dot-config/opencode/README.md) for detailed configuration guide
+
 ## Dependencies
 
 ### Core Tools
@@ -66,10 +73,14 @@ Android-specific terminal configuration with custom colors, fonts, and terminal 
 
 ### Installation Commands
 
-**Linux/macOS:**
+**Linux/macOS (Homebrew):**
 ```bash
-# Install main tools (example using Homebrew)
 brew install helix lazygit tmux delta
+```
+
+**Linux/macOS/Windows (Conda):**
+```bash
+conda install -c conda-forge helix lazygit tmux git-delta
 ```
 
 **Termux (Android):**
