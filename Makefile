@@ -44,7 +44,8 @@ lazygit:
 
 amp:
 	@bash ./local/archive.sh ~/.config/amp
-	@ln -sf "$(shell pwd)/dot-config/amp" ~/.config/amp
+	@mkdir -p ~/.config/amp
+	@ln -sf "$(shell pwd)/__submodules__/humanlayer2/.claude/commands" ~/.config/amp/commands
 	@bash ./local/echo_banner.sh "Amp"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/amp
