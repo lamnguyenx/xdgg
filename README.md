@@ -18,13 +18,14 @@ A post-modern text editor with built-in language server support. Features modal 
   - `Shift+Tab`: Unindent
   - Standard Helix modal keybindings for efficient text editing
 
-### Lazygit
-A simple terminal UI for git operations. Provides a keyboard-driven git interface without leaving the terminal.
-- **Appearance**: Colorful, interactive panels showing branches, commits, staging areas
-- **Behavior**: Fast git workflows with intuitive keybindings for common operations
-- **Platform note**: Works smoothly on Android/Termux for mobile git management
-- **Custom Bindings**:
-  - `D`: Open file diff in Delta with side-by-side, e-ink friendly view (files and commit files contexts)
+ ### Lazygit
+ A simple terminal UI for git operations. Provides a keyboard-driven git interface without leaving the terminal.
+ - **Appearance**: Colorful, interactive panels showing branches, commits, staging areas
+ - **Behavior**: Fast git workflows with intuitive keybindings for common operations
+ - **Platform note**: Works smoothly on Android/Termux for mobile git management
+ - **Clipboard**: Uses system clipboard when available, falls back to tmux buffer for SSH sessions without display
+ - **Custom Bindings**:
+   - `D`: Open file diff in Delta with side-by-side, e-ink friendly view (files and commit files contexts)
 
 ### Tmux
 A terminal multiplexer for managing multiple shell sessions and windows within a single terminal.
@@ -36,15 +37,26 @@ A terminal multiplexer for managing multiple shell sessions and windows within a
   - **Window Switching**: `Alt+0-9` or `Alt+Backtick` - Quick window navigation without prefix
   - **Floating Pane**: `Prefix + l` - Open popup window (50% height/width)
   - **Pane Splitting**: Standard tmux splits open in current directory
-  - **Copy Mode**: `v` - Begin selection, `V` - Select line, `C-v` - Rectangle toggle, `y` - Copy
-  - **Sync Panes**: `Prefix + Ctrl+s` - Toggle synchronized panes
-  - **Vim-style navigation** in copy mode (set mode-keys vi)
+   - **Copy Mode**: `v` - Begin selection, `V` - Select line, `C-v` - Rectangle toggle, `y` - Copy
+   - **Sync Panes**: `Prefix + Ctrl+s` - Toggle synchronized panes
+   - **Save Session**: `Prefix + Shift+s` - Save tmux session (tmux-resurrect)
+   - **Restore Session**: `Prefix + Shift+r` - Restore tmux session (tmux-resurrect)
+   - **Vim-style navigation** in copy mode (set mode-keys vi)
 
 ### Termux Environment
 Android-specific terminal configuration with custom colors, fonts, and terminal properties.
 - **Appearance**: High-contrast color scheme with Nerd Font support for icons
 - **Behavior**: Optimized input/output handling for mobile devices
 - **Fonts**: Consolas Nerd Font for proper glyph rendering
+
+### Yazi File Manager
+A terminal file manager with vi-like keybindings, image previews, and plugin support.
+- **Appearance**: Clean, minimal interface with customizable layouts
+- **Behavior**: Fast file navigation with built-in preview capabilities
+- **Key Bindings**:
+   - `h/j/k/l`: Navigate (vim-style)
+   - `enter`: Open files in `$EDITOR` (text files) or default opener
+   - `e`: Explicitly edit files in `$EDITOR`
 
 ### OpenCode
 An AI-powered coding agent for the terminal. Provides intelligent code assistance with custom commands and automation.
@@ -59,6 +71,7 @@ An AI-powered coding agent for the terminal. Provides intelligent code assistanc
 - **Helix**: `helix` - Modern text editor with LSP support
 - **Lazygit**: `lazygit` - Terminal UI for git
 - **Tmux**: `tmux` - Terminal multiplexer
+- **Yazi**: `yazi` - Terminal file manager with image previews
 - **Delta**: `delta` - Syntax-highlighting pager for git diffs (used in lazygit custom commands)
 
 ### Tmux Plugins (auto-installed via TPM)
@@ -75,17 +88,17 @@ An AI-powered coding agent for the terminal. Provides intelligent code assistanc
 
 **Linux/macOS (Homebrew):**
 ```bash
-brew install helix lazygit tmux delta
+brew install helix lazygit tmux yazi delta
 ```
 
 **Linux/macOS/Windows (Conda):**
 ```bash
-conda install -c conda-forge helix lazygit tmux git-delta
+conda install -c conda-forge helix lazygit tmux yazi git-delta
 ```
 
 **Termux (Android):**
 ```bash
-pkg install helix lazygit tmux git
+pkg install helix lazygit tmux yazi git
 pip install delta
 ```
 
@@ -101,11 +114,12 @@ This project follows the [XDG Base Directory Specification](https://specificatio
 
 1. Backup your current configs if you have them:
 
-   ```bash
-   mv ~/.config/helix ~/.config/helix.backup 2>/dev/null || true
-   mv ~/.config/lazygit ~/.config/lazygit.backup 2>/dev/null || true
-   mv ~/.config/tmux ~/.config/tmux.backup 2>/dev/null || true
-   ```
+    ```bash
+    mv ~/.config/helix ~/.config/helix.backup 2>/dev/null || true
+    mv ~/.config/lazygit ~/.config/lazygit.backup 2>/dev/null || true
+    mv ~/.config/tmux ~/.config/tmux.backup 2>/dev/null || true
+    mv ~/.config/yazi ~/.config/yazi.backup 2>/dev/null || true
+    ```
 
 2. Clone this repository:
 
@@ -115,11 +129,12 @@ This project follows the [XDG Base Directory Specification](https://specificatio
 
 3. Create symlinks for tool configs:
 
-   ```bash
-   ln -s ~/.config/xdgg/dot-config/helix ~/.config/helix
-   ln -s ~/.config/xdgg/dot-config/lazygit ~/.config/lazygit
-   ln -s ~/.config/xdgg/dot-config/tmux ~/.config/tmux
-   ```
+    ```bash
+    ln -s ~/.config/xdgg/dot-config/helix ~/.config/helix
+    ln -s ~/.config/xdgg/dot-config/lazygit ~/.config/lazygit
+    ln -s ~/.config/xdgg/dot-config/tmux ~/.config/tmux
+    ln -s ~/.config/xdgg/dot-config/yazi ~/.config/yazi
+    ```
 
 4. Setup Tmux Plugin Manager (TPM):
 
@@ -135,9 +150,16 @@ This project follows the [XDG Base Directory Specification](https://specificatio
    ```
    Or start tmux and press `Prefix + I` to install plugins interactively.
 
-   **Note:** TPM automatically clones all plugins listed in `tmux.conf` (marked with `set -g @plugin`) into `~/.local/share/tmux/plugins/`. No manual cloning needed—TPM handles it all.
+    **Note:** TPM automatically clones all plugins listed in `tmux.conf` (marked with `set -g @plugin`) into `~/.local/share/tmux/plugins/`. No manual cloning needed—TPM handles it all.
 
-6. Setup Termux (if on Android):
+6. Setup Yazi (optional, for enhanced file management):
+
+    ```bash
+    # Create symlink for Yazi config
+    ln -s ~/.config/xdgg/dot-config/yazi ~/.config/yazi
+    ```
+
+7. Setup Termux (if on Android):
 
    ```bash
    ln -s ~/.config/xdgg/dot-termux/termux.properties ~/.termux/termux.properties

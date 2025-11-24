@@ -1,16 +1,29 @@
-.PHONY: help all helix tmux termux lazygit amp opencode
+.PHONY: help all helix tmux termux lazygit amp opencode bax yazi clean
 
 help:
 	@echo "Configuration Setup"
 	@echo "=================="
 	@echo ""
-	@echo "Run 'make <amp|opencode|tmux|helix|termux|lazygit>' to install specific config"
+	@echo "Run 'make <amp|opencode|tmux|helix|termux|lazygit|bax|yazi>' to install specific config"
 	@echo "Or run 'make all' to install all configurations"
+	@echo "Run 'make clean' to remove symlinks and create empty config directories"
 	@echo ""
 	@echo "WARNING: Do NOT move this directory. All configs use symlinks that will break if this folder is relocated."
 	@echo ""
 
-all: helix tmux termux lazygit amp opencode
+all: helix tmux termux lazygit amp opencode bax yazi
+
+clean:
+	@rm -f ~/.config/helix
+	@mkdir -p ~/.config/helix
+	@rm -f ~/.config/tmux
+	@rm -f ~/.tmux.conf
+	@mkdir -p ~/.config/tmux
+	@rm -f ~/.config/lazygit
+	@mkdir -p ~/.config/lazygit
+	@rm -f ~/.config/yazi
+	@mkdir -p ~/.config/yazi
+	@echo "Cleaned symlinks and created empty config directories"
 
 helix:
 	@bash ./local/archive.sh ~/.config/helix
@@ -27,6 +40,7 @@ tmux:
 	@bash ./local/echo_banner.sh "Tmux"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/tmux ~/.tmux.conf
+	@-tmux source-file ~/.tmux.conf 2>/dev/null || true
 
 termux:
 	@bash ./local/archive.sh ~/.termux
@@ -57,3 +71,13 @@ opencode:
 	@bash ./local/echo_banner.sh "OpenCode"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/opencode/command
+
+yazi:
+	@bash ./local/archive.sh ~/.config/yazi
+	@ln -sf "$(shell pwd)/dot-config/yazi" ~/.config/yazi
+	@bash ./local/echo_banner.sh "Yazi"
+	@echo "Symlinks:"
+	@bash ./local/show_symlinks.sh ~/.config/yazi
+
+bax:
+	@bash ./local/install_bax.sh

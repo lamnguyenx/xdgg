@@ -1,9 +1,12 @@
-gui:
-  theme:
-    selectedLineBgColor:
-      - reverse
+ gui:
+   theme:
+     selectedLineBgColor:
+       - reverse
 
-customCommands:
+ os:
+   copyToClipboardCmd: xclip -selection clipboard || tmux load-buffer -w -
+
+ customCommands:
   - key: 'D'
     command: git diff {{.SelectedFile.Name}} | delta --light --side-by-side --line-numbers
     context: files
