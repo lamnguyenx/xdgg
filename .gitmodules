@@ -1,0 +1,3 @@
+[submodule "dot-config/amp/humanlayer2"]
+	path = dot-config/amp/humanlayer2
+	url = git@github.com:lamnguyenx/humanlayer2.git

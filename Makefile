@@ -1,6 +1,16 @@
-.PHONY: all helix tmux termux lazygit
+.PHONY: help all helix tmux termux lazygit amp
 
-all: helix tmux termux lazygit
+help:
+	@echo "Configuration Setup"
+	@echo "=================="
+	@echo ""
+	@echo "Run 'make <amp|tmux|helix|termux|lazygit>' to install specific config"
+	@echo "Or run 'make all' to install all configurations"
+	@echo ""
+	@echo "WARNING: Do NOT move this directory. All configs use symlinks that will break if this folder is relocated."
+	@echo ""
+
+all: helix tmux termux lazygit amp
 
 helix:
 	@bash ./local/archive.sh ~/.config/helix
@@ -31,3 +41,10 @@ lazygit:
 	@bash ./local/echo_banner.sh "Lazygit"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/lazygit
+
+amp:
+	@bash ./local/archive.sh ~/.config/amp
+	@ln -sf "$(shell pwd)/dot-config/amp" ~/.config/amp
+	@bash ./local/echo_banner.sh "Amp"
+	@echo "Symlinks:"
+	@bash ./local/show_symlinks.sh ~/.config/amp
