@@ -2,18 +2,16 @@ gui:
   theme:
     selectedLineBgColor:
       - reverse
-
 os:
   copyToClipboardCmd: 'xclip -selection clipboard || tmux load-buffer -b 0 -'
-
 customCommands:
   - key: '<c-g>'
     command: "git diff {{.SelectedFile.Name}} | delta --light --side-by-side --line-numbers"
     context: 'files'
     description: 'Open file diff in delta (side-by-side, eink-friendly)'
-    subprocess: true
+    output: terminal
   - key: '<c-g>'
     command: "git diff {{.SelectedCommitFile.Name}} | delta --light --side-by-side --line-numbers"
     context: 'commitFiles'
     description: 'Open file diff in delta (side-by-side, eink-friendly)'
-    subprocess: true
+    output: terminal

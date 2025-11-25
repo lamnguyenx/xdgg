@@ -2,6 +2,14 @@
 
 This directory contains configuration for OpenCode custom commands and settings.
 
+## Installation
+
+OpenCode is installed via the nodejs opencode-ai package:
+
+```bash
+npm install -g opencode-ai
+```
+
 ## Adding Custom Commands
 
 OpenCode supports custom commands in two ways. **Markdown files are recommended** for better readability and maintainability.
