@@ -24,8 +24,9 @@ A post-modern text editor with built-in language server support. Features modal 
  - **Behavior**: Fast git workflows with intuitive keybindings for common operations
  - **Platform note**: Works smoothly on Android/Termux for mobile git management
  - **Clipboard**: Uses system clipboard when available, falls back to tmux buffer for SSH sessions without display
+ - **Config Location**: On macOS, lazygit uses `~/Library/Application Support/lazygit/config.yml` by default. Use `lazygit --print-config-dir` to confirm the location. Set `XDG_CONFIG_HOME="$HOME/.config"` to use `~/.config/lazygit` instead.
  - **Custom Bindings**:
-   - `D`: Open file diff in Delta with side-by-side, e-ink friendly view (files and commit files contexts)
+   - `Ctrl+G`: Open file diff in Delta with side-by-side, e-ink friendly view (files and commit files contexts)
 
 ### Tmux
 A terminal multiplexer for managing multiple shell sessions and windows within a single terminal.

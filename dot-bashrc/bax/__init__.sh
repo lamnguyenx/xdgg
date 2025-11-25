@@ -5,13 +5,17 @@
 # Modularized bash configuration for development environment
 # Sources individual modules for better organization and maintainability
 
+if [ -n "${BAX_SOURCED:-}" ]; then
+    return
+fi
+
 # Calculate script directory once
 bax_dir="$(dirname "${BASH_SOURCE[0]}")"
 
 # Define module arrays for better maintainability
 CORE_MODULES=("common.sh" "logging.sh")
 APP_MODULES=("docker.sh" "git.sh" "homebrew.sh")
-PROJECT_MODULES=("terminal.sh")
+PROJECT_MODULES=("terminal.sh" "aliases.sh")
 
 # Function to source all modules
 source_modules() {
@@ -33,9 +37,14 @@ source_modules() {
 
 # Initial module loading
 source_modules
+BAX_SOURCED=1
 
 # Reload function to reload all modules
 function reload_bax() {
     source_modules
     echo "✅ All bax modules reloaded"
+}
+
+function reload_bashrc() {
+    source ~/.bashrc
 }

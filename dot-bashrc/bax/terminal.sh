@@ -2,6 +2,8 @@
 # --------------------------------------------------------------
 #                     iteractive terminal
 # --------------------------------------------------------------
+
+export COLORTERM=truecolor
 function is_docker_container() {
     # Check if PID 1 is NOT init/systemd
     local pid1_cmd=$(ps -p 1 -o comm= 2>/dev/null | tr -d ' ')
@@ -70,7 +72,7 @@ function get_subbranch_tag() {
 
 
 PS1="\
-(\$(date +%T.%3Ns)) \
+(\$(basename "${0#-}")) (\$(date +%T.%3Ns)) \
 ${debian_chroot:+($debian_chroot)}\
 \[$PS_COLOR_1\[${debian_chroot:+($debian_chroot)}\
 \u @ ${HOST_IP}$ANSIFmt__reset ($TERMINAL_ID) \[$PS_COLOR_2\[\

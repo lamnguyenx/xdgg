@@ -197,7 +197,7 @@ function just_one_tensorboard() {
             --host 0.0.0.0 \
             --logdir "$logdir" \
             --port $port \
-        &>> ~/$port.log &
+>> ~/$port.log 2>&1 &
 
     tail -f ~/$port.log
 }

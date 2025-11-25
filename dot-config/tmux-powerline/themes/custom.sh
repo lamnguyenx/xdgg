@@ -129,7 +129,7 @@ if [ -z "$TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS" ]; then
 		#"cpu 240 136"
 		#"load 250 232"             # REMOVED: System load
 		#"tmux_mem_cpu_load 234 136"
-		"battery 244 232"           # Gray bg, dark text
+		#"battery 244 232"           # Gray bg, dark text
 		#"air ${TMUX_POWERLINE_SEG_AIR_COLOR} 255"
 		#"weather 250 232"          # REMOVED: Weather
 		#"rainbarf 0 ${TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR}"

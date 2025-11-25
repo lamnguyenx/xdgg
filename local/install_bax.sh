@@ -31,17 +31,13 @@ fi
 
 # Replace or add the bax block
 if grep -q "# >>> bax initialize >>>" ~/.bashrc 2>/dev/null; then
-    # Replace existing block in place
-    sed -i "/# >>> bax initialize >>>/,/# <<< bax initialize <<</{
-        r /dev/stdin
-        d
-    }" ~/.bashrc <<< "$BAX_BLOCK"
-    echo "Replaced existing bax block"
-else
-    # Add new block at the end
-    echo "" >> ~/.bashrc
-    echo "$BAX_BLOCK" >> ~/.bashrc
-    echo "Added bax block"
+    # Delete the old block
+    sed -i '.bak' '/# >>> bax initialize >>>/,/# <<< bax initialize <<</d' ~/.bashrc
+    echo "Removed existing bax block (backup created as ~/.bashrc.bak)"
 fi
+# Add new block at the end
+echo "" >> ~/.bashrc
+echo "$BAX_BLOCK" >> ~/.bashrc
+echo "Added bax block"
 
 echo "✅ bax installed successfully! Restart your shell or run 'source ~/.bashrc' to apply changes."

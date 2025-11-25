@@ -52,11 +52,11 @@ termux:
 	@bash ./local/show_symlinks.sh ~/.termux
 
 lazygit:
-	@bash ./local/archive.sh ~/.config/lazygit
-	@ln -sf "$(shell pwd)/dot-config/lazygit" ~/.config/lazygit
+	@mkdir -p "$(shell lazygit --print-config-dir)"
+	@ln -sf "$(shell pwd)/dot-config/lazygit/config.yml" "$(shell lazygit --print-config-dir)/config.yml"
 	@bash ./local/echo_banner.sh "Lazygit"
 	@echo "Symlinks:"
-	@bash ./local/show_symlinks.sh ~/.config/lazygit
+	@ls -la "$(shell lazygit --print-config-dir)/config.yml"
 
 amp:
 	@bash ./local/archive.sh ~/.config/amp
