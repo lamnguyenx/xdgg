@@ -4,3 +4,4 @@ dot-config/tmux/tmux
 __submodules__/humanlayer2/.claude/commands/commands
 # Ignore any other symlinks that might be accidentally created
 *.lnk
+exp/

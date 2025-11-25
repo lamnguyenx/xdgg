@@ -23,5 +23,6 @@ alias a="amp"
 alias ac="amp threads continue"
 
 alias lg="lazygit"
+alias gu="gituit"
 
 alias tb="SHELL=/bin/bash tmux"

@@ -11,7 +11,12 @@ customCommands:
     description: 'Open file diff in delta (side-by-side, eink-friendly)'
     output: terminal
   - key: '<c-g>'
-    command: "git diff {{.SelectedCommitFile.Name}} | delta --light --side-by-side --line-numbers"
+    command: "git diff {{.SelectedCommitRange.From}}..{{.SelectedCommitRange.To}} | delta --light --side-by-side --line-numbers"
+    context: 'commits'
+    description: 'Side-by-side diff between selected commits (Diff Mode)'
+    output: terminal
+  - key: '<c-g>'
+    command: "git diff {{.SelectedLocalCommit.Sha}}~1 {{.SelectedLocalCommit.Sha}} -- {{.SelectedCommitFile.Name}} | delta --light --side-by-side --line-numbers"
     context: 'commitFiles'
     description: 'Open file diff in delta (side-by-side, eink-friendly)'
     output: terminal
