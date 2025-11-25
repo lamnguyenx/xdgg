@@ -26,3 +26,20 @@ alias lg="lazygit"
 alias gu="gituit"
 
 alias tb="SHELL=/bin/bash tmux"
+
+# Check if running in VS Code terminal and set editor accordingly
+if [ "$TERM_PROGRAM" = "vscode" ]; then
+    export EDITOR="code --wait"
+fi
+
+# ===================================
+#            PROJECTS
+# ===================================
+
+if [[ -f .project.sh ]]; then
+    source .project.sh
+fi
+
+if [[ -f .project-untracked.sh ]]; then
+    source .project-untracked.sh
+fi

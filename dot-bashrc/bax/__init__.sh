@@ -15,7 +15,7 @@ bax_dir="$(dirname "${BASH_SOURCE[0]}")"
 # Define module arrays for better maintainability
 CORE_MODULES=("common.sh" "logging.sh")
 APP_MODULES=("docker.sh" "git.sh" "homebrew.sh")
-PROJECT_MODULES=("terminal.sh" "aliases.sh")
+PROJECT_MODULES=("terminal.sh" "lastly.sh")
 
 # Function to source all modules
 source_modules() {

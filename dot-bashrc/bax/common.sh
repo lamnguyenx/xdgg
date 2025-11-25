@@ -315,14 +315,3 @@ elif command -v aplay &>/dev/null; then
     alias noti="(aplay /usr/share/sounds/alsa/Front_Center.wav &>/dev/null &)"
 fi
 
-# ===================================
-#            PROJECTS
-# ===================================
-
-if [[ -f .project.sh ]]; then
-    source .project.sh
-fi
-
-if [[ -f .project-untracked.sh ]]; then
-    source .project-untracked.sh
-fi
