@@ -1,11 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mm:
     image: lamnguyenx/mitmweb:13.0.0.dev0-lamguyenx
-    ports:
-      - "8010:8010"
-      - "8011:8011"
+    network_mode: host
     volumes:
       - ./exp/xdgg/mm/conf_dir:/conf_dir
     command: |
@@ -14,6 +12,7 @@ services:
           --web-host 0.0.0.0 \
           --web-port 8011 \
           --listen-port 8010 \
-          --set web_password="Fighting@001" \
-          --set confdir=/conf_dir
+          --set web_password="1" \
+          --set confdir=/conf_dir \
+          --set block_global=false
       '
