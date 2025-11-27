@@ -163,9 +163,10 @@ function print_proxy() {
     echo "| HTTPS_PROXY         |" "${HTTPS_PROXY:-"<<unset>>"}"
     echo "| socks_proxy         |" "${socks_proxy:-"<<unset>>"}"
     echo "| SOCKS_PROXY         |" "${SOCKS_PROXY:-"<<unset>>"}"
+    echo "| no_proxy            |" "${no_proxy:-"<<unset>>"}"
+    echo "| NO_PROXY            |" "${NO_PROXY:-"<<unset>>"}"
     echo "| REQUESTS_CA_BUNDLE  |" "${REQUESTS_CA_BUNDLE:-"<<unset>>"}"
     echo "| NODE_EXTRA_CA_CERTS |" "${NODE_EXTRA_CA_CERTS:-"<<unset>>"}"
-    echo "| NO_PROXY            |" "${NO_PROXY:-"<<unset>>"}"
     echo "+---------------------+"
 }
 
