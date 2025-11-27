@@ -121,6 +121,7 @@ function urlencode() {
 
 function unset_proxy() {
 
+    unset PROXY_NAME
     unset http_proxy
     unset HTTP_PROXY
     unset https_proxy
@@ -157,6 +158,7 @@ function print_proxy() {
 
     echo "+---------------------+"
     echo "| > called by         |" "$parent_func"
+    echo "| PROXY_NAME          |" "${PROXY_NAME:-"<<unset>>"}"
     echo "| http_proxy          |" "${http_proxy:-"<<unset>>"}"
     echo "| HTTP_PROXY          |" "${HTTP_PROXY:-"<<unset>>"}"
     echo "| https_proxy         |" "${https_proxy:-"<<unset>>"}"
@@ -290,9 +292,8 @@ function rename_easy() {
 
 
 # --------------------------------------------------------------
-#                            AI
+#                            MISCS
 # --------------------------------------------------------------
-# bind '"\e[27;2;13~": "\n"'
 alias ap="set_pp_proxy && amp"
 alias cl="set_pp_proxy && claude --verbose"
 export EDITOR="vim"

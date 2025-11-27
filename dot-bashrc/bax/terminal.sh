@@ -70,9 +70,26 @@ function get_subbranch_tag() {
     fi
 }
 
+function get_proxy_indicator() {
+    local proxies=""
+    if [[ -n "${http_proxy:-}" || -n "${HTTP_PROXY:-}" ]]; then
+        proxies="http"
+    fi
+    if [[ -n "${socks_proxy:-}" || -n "${SOCKS_PROXY:-}" ]]; then
+        if [[ -n "$proxies" ]]; then
+            proxies="${proxies},socks"
+        else
+            proxies="socks"
+        fi
+    fi
+    if [[ -n "$proxies" ]]; then
+        local name_part="${PROXY_NAME:+ ${PROXY_NAME}}"
+        echo " [set $proxies${name_part} proxy]"
+    fi
+}
 
 PS1="\
-(\$(basename "${0#-}")) (\$(date +%T.%3Ns)) \
+(\$(basename "${0#-}")) (\$(date +%T.%3Ns))\[$ANSIFmt__violet\]\$(get_proxy_indicator)\[$ANSIFmt__reset\] \
 ${debian_chroot:+($debian_chroot)}\
 \[$PS_COLOR_1\[${debian_chroot:+($debian_chroot)}\
 \u @ ${HOST_IP}$ANSIFmt__reset ($TERMINAL_ID) \[$PS_COLOR_2\[\

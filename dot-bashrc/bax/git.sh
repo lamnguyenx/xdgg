@@ -2,6 +2,10 @@
 # --------------------------------------------------------------
 #                           git
 # --------------------------------------------------------------
+function just_amend() {
+    git commit --amend --no-edit
+}
+
 function git_remember_passwords() {
     git config --global credential.helper store
 }
@@ -144,7 +148,7 @@ function gl_quick_jump() {
     fi
 
     # Get all paths using global arrays
-    gl_collect_all_submodules "$git_root" > /dev/null
+    gl_collect_all_submodules "$git_root" >/dev/null
 
     # Validate target number range
     if [ "$target_num" -ge ${#GL_PATHS[@]} ]; then
@@ -213,7 +217,7 @@ function gl_search() {
     fi
 
     # Get all paths using global arrays
-    gl_collect_all_submodules "$git_root" > /dev/null
+    gl_collect_all_submodules "$git_root" >/dev/null
 
     # Search for first match
     for i in "${!GL_RELATIVE_PATHS[@]}"; do
@@ -489,13 +493,13 @@ function gl_display_by_levels() {
     # Sort indices by level, then by path
     local -a sorted_indices
     for i in "${!GL_PATHS[@]}"; do
-        if [ $i -eq 0 ]; then continue; fi  # Skip root
+        if [ $i -eq 0 ]; then continue; fi # Skip root
         sorted_indices+=($i)
     done
 
     # Simple bubble sort by level
-    for ((i=0; i<${#sorted_indices[@]}; i++)); do
-        for ((j=i+1; j<${#sorted_indices[@]}; j++)); do
+    for ((i = 0; i < ${#sorted_indices[@]}; i++)); do
+        for ((j = i + 1; j < ${#sorted_indices[@]}; j++)); do
             local idx1=${sorted_indices[i]}
             local idx2=${sorted_indices[j]}
             if [ ${GL_LEVELS[idx1]} -gt ${GL_LEVELS[idx2]} ]; then
@@ -523,22 +527,18 @@ function gl_display_by_levels() {
     done
 }
 
-function just_commit ()
-{
-    message="${@:-"just committed"}";
+function just_commit() {
+    message="${@:-"just committed"}"
     git add . && git commit -m "/// $message" && log_ok "🦝: $message"
 }
 
-function just_push ()
-{
-    message="${@:-"just pushed"}";
+function just_push() {
+    message="${@:-"just pushed"}"
     git add . && git commit -m "/// $message" && git push && log_ok "🦝: $message"
 }
 
-
-function just_commit_all ()
-{
-    message="${@:-"just committed"}";
+function just_commit_all() {
+    message="${@:-"just committed"}"
 
     # Function to commit in a single repository
     commit_repo() {
@@ -552,7 +552,7 @@ function just_commit_all ()
 
         # Now check if there are any changes (staged or unstaged)
         if git diff --quiet && git diff --staged --quiet; then
-            true  # No changes to commit
+            true # No changes to commit
         else
             log_info "📁 Processing: $repo_path"
             git commit -m "/// $commit_message" && log_ok "   🦝: $commit_message"
@@ -591,8 +591,7 @@ function just_commit_all ()
     cd "$original_dir"
 }
 
-function just_push_all ()
-{
+function just_push_all() {
     local message="${@:-"just pushed"}"
 
     # Function to commit and push in a single repository
@@ -662,10 +661,7 @@ function just_push_all ()
     cd "$original_dir"
 }
 
-
-
-function find_just_committed_all ()
-{
+function find_just_committed_all() {
     local show_details="${1:-false}"
 
     # Function to check current commit in a repository
@@ -757,7 +753,7 @@ function remove_submodule() {
 }
 
 function git_ls_large_objects() {
-    git rev-list --objects --all \
-        | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
-        | sort -k3 -n -r
+    git rev-list --objects --all |
+        git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' |
+        sort -k3 -n -r
 }
