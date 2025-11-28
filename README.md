@@ -75,6 +75,14 @@ An AI-powered coding agent for the terminal. Provides intelligent code assistanc
 - **Custom Commands**: Define reusable prompts as Markdown files or JSON config
 - **See**: [dot-config/opencode/README.md](dot-config/opencode/README.md) for detailed configuration guide
 
+### Firefox (Normal / Developer Editions)
+Custom user interface styling for Firefox using userChrome.css.
+- **Appearance**: Vertical tabs styling with opacity effects on hover
+- **Behavior**: Custom CSS rules applied to Firefox's UI elements
+- **Setup**: Run `make firefox` to install symlinks to all Firefox profiles (works for both Normal and Developer Edition)
+- **Enable userChrome.css**: In Firefox, go to `about:config` and set `toolkit.legacyUserProfileCustomizations.stylesheets` to `true`, then restart Firefox
+- **Customization**: Edit `dot-config/firefox/chrome/userChrome.css` to modify styling
+
 ## Dependencies
 
 ### Core Tools
@@ -82,6 +90,7 @@ An AI-powered coding agent for the terminal. Provides intelligent code assistanc
 - **Lazygit**: `lazygit` - Terminal UI for git
 - **Tmux**: `tmux` - Terminal multiplexer
 - **Yazi**: `yazi` - Terminal file manager with image previews
+- **Firefox**: `firefox` - Web browser with custom UI styling (works for both Normal and Developer Edition)
 - **Delta**: `delta` - Syntax-highlighting pager for git diffs (used in lazygit custom commands)
 
 ### Tmux Plugins (auto-installed via TPM)

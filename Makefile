@@ -1,17 +1,17 @@
-.PHONY: help all helix tmux termux lazygit amp opencode bax yazi tmux-powerline clean
+.PHONY: help all helix tmux termux lazygit amp opencode bax yazi tmux-powerline firefox clean
 
 help:
 	@echo "Configuration Setup"
 	@echo "=================="
 	@echo ""
-	@echo "Run 'make <amp|opencode|tmux|helix|termux|lazygit|bax|yazi|tmux-powerline>' to install specific config"
+	@echo "Run 'make <amp|opencode|tmux|helix|termux|lazygit|bax|yazi|tmux-powerline|firefox>' to install specific config"
 	@echo "Or run 'make all' to install all configurations"
 	@echo "Run 'make clean' to remove symlinks and create empty config directories"
 	@echo ""
 	@echo "WARNING: Do NOT move this directory. All configs use symlinks that will break if this folder is relocated."
 	@echo ""
 
-all: helix tmux termux lazygit amp opencode bax yazi tmux-powerline
+all: helix tmux termux lazygit amp opencode bax yazi tmux-powerline firefox
 
 clean:
 	@rm -f ~/.config/helix
@@ -87,6 +87,9 @@ tmux-powerline:
 	@bash ./local/echo_banner.sh "Tmux Powerline"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/tmux-powerline
+
+firefox:
+	@bash ./local/install_firefox_custom_css.sh "$(shell pwd)/dot-config/firefox/chrome/userChrome.css"
 
 bax:
 	@bash ./local/install_bax.sh
