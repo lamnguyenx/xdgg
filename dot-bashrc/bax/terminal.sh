@@ -40,17 +40,19 @@ function get_git_branch_tag() {
     [[ "$PWD" == /mnt/* ]] && return
     local branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
     if [[ ! -z "$branch" ]]; then
-        local info=""
-        local hash=" ($(git rev-parse --short HEAD))"
-        local aheadd="$(git rev-list --count @{u}..HEAD 2>/dev/null)"
-        local behind="$(git rev-list --count HEAD..@{u} 2>/dev/null)"
-        # local stashh="$(git stash list 2>/dev/null | wc -l)"
-
-        [[ "$aheadd" -gt 0 ]] && info+=" ↑$aheadd "
-        [[ "$behind" -gt 0 ]] && info+=" ↓$behind "
-        # [[ "$stashh" -gt 0 ]] && info+=" \033[45;30m*$stashh\033[00m"
-
-        echo -e " ⊢ $branch$info$hash"
+        if git log --oneline -1 >/dev/null 2>&1; then
+            local info=""
+            local hash=" ($(git rev-parse --short HEAD))"
+            if git rev-parse --abbrev-ref @{u} >/dev/null 2>&1; then
+                local aheadd="$(git rev-list --count @{u}..HEAD 2>/dev/null)"
+                local behind="$(git rev-list --count HEAD..@{u} 2>/dev/null)"
+                [[ "$aheadd" -gt 0 ]] && info+=" ↑$aheadd "
+                [[ "$behind" -gt 0 ]] && info+=" ↓$behind "
+            fi
+            echo -e " ⊢ $branch$info$hash"
+        else
+            echo -e " ⊢ $branch"
+        fi
     fi
 }
 

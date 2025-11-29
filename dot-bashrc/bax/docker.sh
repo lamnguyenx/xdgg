@@ -4,31 +4,163 @@
 # --------------------------------------------------------------
 alias dc="docker-compose"
 
+# ===================================
+#         CORE UTILITIES
+# ===================================
+
+function validate_params() {
+    # Validate function parameters
+    # Args: $1 - expected number of parameters
+    #       $2 - function name for error messages
+    #       remaining args - parameter descriptions
+    local expected_count="$1"
+    local func_name="$2"
+    shift 2
+
+    if [ $# -ne "$expected_count" ]; then
+        echo "$func_name - ${*:1}"
+        echo ""
+        echo "USAGE:"
+        echo "  $func_name ${*:2}"
+        echo ""
+        if [ $# -gt 0 ]; then
+            echo "PARAMETERS:"
+            local i=1
+            for param_desc in "$@"; do
+                echo "  \$$i    $param_desc"
+                ((i++))
+            done
+        fi
+        return 1
+    fi
+    return 0
+}
+
+function filter_docker_services() {
+    # Filter docker-compose services based on patterns
+    # Args: patterns to match (if none provided, returns all services)
+    # Returns: space-separated list of matched service names
+    # Sets: FILTERED_SERVICES array with matched services
+    local patterns=("$@")
+
+    # Get all services from docker-compose
+    local all_services
+    all_services=$(docker-compose config --services 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        log_error "Failed to get docker-compose services. Are you in a directory with docker-compose.yml?"
+        return 1
+    fi
+
+    # Filter services based on patterns
+    FILTERED_SERVICES=()
+    if [ ${#patterns[@]} -eq 0 ]; then
+        # If no patterns provided, match all services
+        for service in $all_services; do
+            FILTERED_SERVICES+=("$service")
+        done
+    else
+        for service in $all_services; do
+            local matched=false
+            for pattern in "${patterns[@]}"; do
+                if [[ $service =~ $pattern ]]; then
+                    matched=true
+                    break
+                fi
+            done
+            if $matched; then
+                FILTERED_SERVICES+=("$service")
+            fi
+        done
+    fi
+
+    # Check if any services matched
+    if [ ${#FILTERED_SERVICES[@]} -eq 0 ]; then
+        if [ ${#patterns[@]} -eq 0 ]; then
+            log_error "No services found in docker-compose configuration"
+        else
+            log_error "No services matched patterns: ${patterns[*]}"
+        fi
+        return 1
+    fi
+
+    return 0
+}
+
+function docker_compose_operation() {
+    # Perform docker-compose operations with proper error handling
+    # Args: $1 - operation name for logging
+    #       remaining args - docker-compose command and arguments
+    local operation="$1"
+    shift
+
+    log_info "🔄 $operation: $*"
+    if docker-compose "$@"; then
+        log_ok "✅ $operation completed successfully"
+        return 0
+    else
+        log_error "❌ $operation failed"
+        return 1
+    fi
+}
 
 
 
 
 
-slugify_docker() {
+
+# ===================================
+#         UTILITY FUNCTIONS
+# ===================================
+
+function slugify_docker() {
+    # Convert docker image names to filesystem-safe slugs
+    # Args: $1 - docker image name (e.g., "nginx:latest")
+    # Returns: slugified version (e.g., "nginx__latest")
+    if ! validate_params 1 "slugify_docker" "docker image name"; then
+        return 1
+    fi
+
     local image_name="$1"
-
     # Replace problematic characters but keep structure recognizable
     # Replace '/' with '_' and ':' with '__'
     local slug=$(echo "$image_name" | sed 's|/|_|g' | sed 's|:|__|g')
-
     echo "$slug"
 }
 
+# ===================================
+#         DOCKER OPERATIONS
+# ===================================
 
-# DOCKER
 function enter() {
+    # Enter a running docker container with bash or sh fallback
+    # Args: $1 - container ID or name
+    if ! validate_params 1 "enter" "container ID or name"; then
+        return 1
+    fi
+
     local container_id="$1"
-    docker exec -it $container_id bash || docker exec -it $container_id sh
+    log_info "🔗 Entering container: $container_id"
+
+    if docker exec -it "$container_id" bash 2>/dev/null; then
+        log_ok "✅ Exited container successfully"
+    elif docker exec -it "$container_id" sh 2>/dev/null; then
+        log_ok "✅ Exited container successfully (using sh)"
+    else
+        log_error "❌ Failed to enter container '$container_id'"
+        return 1
+    fi
 }
 
 function dcl() {
-    $DC logs --no-log-prefix -f --tail 100 $@
+    # Follow docker-compose logs with default tail of 100 lines
+    # Args: service names (optional - follows all if none provided)
+    log_info "📋 Following docker-compose logs (tail 100)"
+    docker-compose logs --no-log-prefix -f --tail 100 "$@"
 }
+
+# ===================================
+#     DOCKER-COMPOSE OPERATIONS
+# ===================================
 
 function hotloadl() {
     $DC kill $@ && \
@@ -36,127 +168,78 @@ function hotloadl() {
     $DC logs --no-log-prefix -f --tail 100 $@
 }
 
-function hotload ()
-{
-    local pattern="^$1$"
+function hotload() {
+    # Hot reload docker-compose services with pattern matching
+    # Args: patterns to match service names (optional - matches all if none provided)
+    local patterns=("$@")
 
-    # Get all services from docker-compose
-    local all_services=$(docker-compose config --services)
-
-    # Filter services based on pattern
-    local matched_services=()
-    for service in $all_services; do
-        if [[ $service =~ $pattern ]]; then
-            matched_services+=("$service")
-        fi
-    done
-
-    # Check if any services matched
-    if [ ${#matched_services[@]} -eq 0 ]; then
-        echo "No services matched pattern: $pattern"
+    # Filter services based on patterns
+    if ! filter_docker_services "${patterns[@]}"; then
         return 1
     fi
 
     # Display which services will be restarted
-    echo "Restarting services: ${matched_services[*]}"
+    log_info "🔄 Restarting services: ${FILTERED_SERVICES[*]}"
 
     # Restart the matched services
-    docker-compose kill "${matched_services[@]}" && \
-    docker-compose up -d --no-deps --force-recreate "${matched_services[@]}" && \
-    docker-compose logs -f "${matched_services[@]}"
+    docker_compose_operation "Killing services" kill "${FILTERED_SERVICES[@]}" && \
+    docker_compose_operation "Starting services" up -d --no-deps --force-recreate "${FILTERED_SERVICES[@]}" && \
+    docker_compose_operation "Following logs" logs -f "${FILTERED_SERVICES[@]}"
 }
 
-function coldload ()
-{
-    local pattern="^$1$"
+function coldload() {
+    # Cold start docker-compose services with pattern matching
+    # Args: patterns to match service names (optional - matches all if none provided)
+    local patterns=("$@")
 
-    # Get all services from docker-compose
-    local all_services=$(docker-compose config --services)
-
-    # Filter services based on pattern
-    local matched_services=()
-    for service in $all_services; do
-        if [[ $service =~ $pattern ]]; then
-            matched_services+=("$service")
-        fi
-    done
-
-    # Check if any services matched
-    if [ ${#matched_services[@]} -eq 0 ]; then
-        echo "No services matched pattern: $pattern"
+    # Filter services based on patterns
+    if ! filter_docker_services "${patterns[@]}"; then
         return 1
     fi
 
     # Display which services will be restarted
-    echo "Restarting services: ${matched_services[*]}"
+    log_info "🚀 Starting services: ${FILTERED_SERVICES[*]}"
 
-    # Restart the matched services
-    docker-compose up -d "${matched_services[@]}" && \
-    docker-compose logs -f "${matched_services[@]}"
+    # Start the matched services
+    docker_compose_operation "Starting services" up -d "${FILTERED_SERVICES[@]}" && \
+    docker_compose_operation "Following logs" logs -f "${FILTERED_SERVICES[@]}"
 }
 
-function hotkill ()
-{
-    local pattern="^$1$"
+function hotkill() {
+    # Kill docker-compose services with pattern matching
+    # Args: patterns to match service names (optional - matches all if none provided)
+    local patterns=("$@")
 
-    # Get all services from docker-compose
-    local all_services=$(docker-compose config --services)
-
-    # Filter services based on pattern
-    local matched_services=()
-    for service in $all_services; do
-        if [[ $service =~ $pattern ]]; then
-            matched_services+=("$service")
-        fi
-    done
-
-    # Check if any services matched
-    if [ ${#matched_services[@]} -eq 0 ]; then
-        echo "No services matched pattern: $pattern"
+    # Filter services based on patterns
+    if ! filter_docker_services "${patterns[@]}"; then
         return 1
     fi
 
-    # Display which services will be killed
-    echo "Killing services: ${matched_services[*]}"
-
     # Kill the matched services
-    docker-compose kill "${matched_services[@]}"
+    docker_compose_operation "Killing services" kill "${FILTERED_SERVICES[@]}"
 }
 
 
-function hotlogs ()
-{
-    local pattern="^$1$"
+function hotlogs() {
+    # Follow logs for docker-compose services with pattern matching
+    # Args: patterns to match service names (optional - matches all if none provided)
+    local patterns=("$@")
 
-    # Get all services from docker-compose
-    local all_services=$(docker-compose config --services)
-
-    # Filter services based on pattern
-    local matched_services=()
-    for service in $all_services; do
-        if [[ $service =~ $pattern ]]; then
-            matched_services+=("$service")
-        fi
-    done
-
-    # Check if any services matched
-    if [ ${#matched_services[@]} -eq 0 ]; then
-        echo "No services matched pattern: $pattern"
+    # Filter services based on patterns
+    if ! filter_docker_services "${patterns[@]}"; then
         return 1
     fi
 
-    # Display which services will be killed
-    echo "Logging services: ${matched_services[*]}"
-
-    # Kill the matched services
-    docker-compose logs -f --tail 500 "${matched_services[@]}"
+    # Follow logs for matched services
+    log_info "📋 Following logs for services: ${FILTERED_SERVICES[*]}"
+    docker_compose_operation "Following logs" logs -f --tail 500 "${FILTERED_SERVICES[@]}"
 }
 
 
 function get_dockerfile_content() {
-    # Check argument count
-    if [[ $# -ne 1 ]]; then
-        echo "Usage: get_dockerfile <image_name>" >&2
+    # Extract Dockerfile content from a docker image
+    # Args: $1 - image name
+    if ! validate_params 1 "get_dockerfile_content" "docker image name"; then
         return 1
     fi
 
@@ -164,10 +247,11 @@ function get_dockerfile_content() {
 
     # Check if image exists
     if ! docker image inspect "$image" &>/dev/null; then
-        echo "Error: Image '$image' not found" >&2
+        log_error "❌ Image '$image' not found locally"
         return 1
     fi
 
+    log_info "🔍 Extracting Dockerfile content from: $image"
     docker history --no-trunc "$image" \
         | tac \
         | tr -s ' ' \
@@ -180,49 +264,79 @@ function get_dockerfile_content() {
 }
 
 function send_docker_image_via_pipe() {
-    local image_name="$1"
-    local server_alias="$2"
-
-    # Check arguments
-    if [[ -z "$image_name" || -z "$server_alias" ]]; then
-        echo "Usage: send_docker_image <image_name> <server_alias>"
-        echo "Example: send_docker_image nginx:latest dev-server"
+    # Send a docker image to a remote server via SSH pipe
+    # Args: $1 - image name, $2 - SSH server alias
+    if ! validate_params 2 "send_docker_image_via_pipe" "docker image name" "SSH server alias"; then
         return 1
     fi
 
+    local image_name="$1"
+    local server_alias="$2"
+
     # Check if image exists locally
     if ! docker image inspect "$image_name" >/dev/null 2>&1; then
-        echo "❌ Image '$image_name' not found locally"
+        log_error "❌ Image '$image_name' not found locally"
         return 1
     fi
 
     # Test SSH connection
     if ! ssh -o ConnectTimeout=5 "$server_alias" "echo 'OK'" >/dev/null 2>&1; then
-        echo "❌ Cannot connect to $server_alias"
+        log_error "❌ Cannot connect to $server_alias via SSH"
         return 1
     fi
 
-    echo "📦 Sending $image_name to $server_alias..."
+    log_info "📦 Sending $image_name to $server_alias..."
 
     # Get image size for progress bar
     local image_size=$(docker image inspect "$image_name" --format='{{.Size}}')
 
     # Send with compression and progress
-    docker save "$image_name" | \
-    pv -s "$image_size" | \
-    gzip | \
-    ssh "$server_alias" 'gunzip | docker load'
-
-    if [[ $? -eq 0 ]]; then
-        echo "✅ Successfully sent $image_name to $server_alias"
+    if docker save "$image_name" | pv -s "$image_size" 2>/dev/null | gzip | ssh "$server_alias" 'gunzip | docker load'; then
+        log_ok "✅ Successfully sent $image_name to $server_alias"
     else
-        echo "❌ Transfer failed"
+        log_error "❌ Transfer failed"
         return 1
     fi
 }
 
 
+# ===================================
+#         IMAGE OPERATIONS
+# ===================================
+
+function get_dockerfile_content() {
+    # Extract Dockerfile content from a docker image
+    # Args: $1 - image name
+    if ! validate_params 1 "get_dockerfile_content" "docker image name"; then
+        return 1
+    fi
+
+    local image="$1"
+
+    # Check if image exists
+    if ! docker image inspect "$image" &>/dev/null; then
+        log_error "❌ Image '$image' not found locally"
+        return 1
+    fi
+
+    log_info "🔍 Extracting Dockerfile content from: $image"
+    docker history --no-trunc "$image" \
+        | tac \
+        | tr -s ' ' \
+        | cut -d " " -f 5- \
+        | sed 's,^/bin/sh -c #(nop) ,,g' \
+        | sed 's,^/bin/sh -c,RUN,g' \
+        | sed 's, && ,\n  & ,g' \
+        | sed 's,\s*[0-9]*[\.]*[0-9]*\s*[kMG]*B\s*$,,g' \
+        | head -n -1
+}
+
+# ===================================
+#       ADVANCED OPERATIONS
+# ===================================
+
 function dc_replace_tag() {
+    # Tag Docker images with new tags based on existing image names in docker-compose
     # Define options as variables (dry run disabled by default)
     local dry=false
     local live=false
@@ -235,9 +349,9 @@ function dc_replace_tag() {
 
     Options:
         --dry [true|false]      Show what would be tagged without actually tagging (default: false)
-                                Can be used as flag: --dry (same as --dry true)
+                                 Can be used as flag: --dry (same as --dry true)
         --live [true|false]     Check only running services, not all configured (default: false)
-                                Can be used as flag: --live (same as --live true)
+                                 Can be used as flag: --live (same as --live true)
         --config <file>         Load options from config file
         --help|-h               Show this help message
 
@@ -333,7 +447,7 @@ function dc_replace_tag() {
         | grep "$source_string")
 
     if [ -z "$matching_images" ]; then
-        echo "No images found containing: $source_string"
+        log_info "ℹ️ No images found containing: $source_string"
         return 0
     fi
 
@@ -366,7 +480,7 @@ function dc_replace_tag() {
     echo "--------------------------------------------------------------"
 
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Operation cancelled."
+        log_info "ℹ️ Operation cancelled by user"
         return 0
     fi
 
@@ -391,10 +505,9 @@ function dc_replace_tag() {
             echo ""
         done
 
-    echo "=== Summary ==="
-    echo "Tagged images successfully"
+    log_ok "✅ Tagged $success_count/$total_count images successfully"
     echo ""
-    echo "=== Next steps ==="
+    log_info "📋 Next steps:"
     echo "1. Update your docker-compose.yml manually if needed"
     echo "2. Push new tags: docker push <new_image_name>"
     echo "3. Update services: docker-compose pull && docker-compose up -d"

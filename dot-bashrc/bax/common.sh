@@ -189,23 +189,6 @@ function list_swap(){
 }
 
 
-function just_one_tensorboard() {
-
-    local logdir="$1"
-    local port=$2
-
-    pgrep -U $USER -f "tensorboard.*$port" | xargs kill
-    setsid nohup \
-        tensorboard \
-            --host 0.0.0.0 \
-            --logdir "$logdir" \
-            --port $port \
->> ~/$port.log 2>&1 &
-
-    tail -f ~/$port.log
-}
-
-
 function rename_easy() {
     local input_dir="$1"
     local source_string="$2"

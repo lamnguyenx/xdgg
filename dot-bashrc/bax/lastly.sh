@@ -33,6 +33,34 @@ if [ "$TERM_PROGRAM" = "vscode" ]; then
 fi
 
 # ===================================
+#            JUST ONE
+# ===================================
+function just_one_tensorboard() {
+
+    local logdir="$1"
+    local port=$2
+
+    pgrep -U $USER -f "tensorboard.*$port" | xargs kill
+    setsid nohup \
+        tensorboard \
+        --host 0.0.0.0 \
+        --logdir "$logdir" \
+        --port $port \
+        >>~/$port.log 2>&1 &
+    sleep 1 && log_ok "Ran just_one_tensorboard in bg, you can Ctrl + C now" &
+    tail -f ~/$port.log
+}
+
+function just_one_grip() {
+    local file="$1"
+
+    pgrep -U $USER -f "$(which grip)" | xargs kill
+    setsid nohup grip "$file" &>~/grip.log &
+    sleep 1 && log_ok "Ran just_one_grip in bg, you can Ctrl + C now" &
+    tail -f ~/grip.log
+}
+
+# ===================================
 #            PROJECTS
 # ===================================
 

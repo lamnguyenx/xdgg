@@ -2,7 +2,123 @@
 # --------------------------------------------------------------
 #                           git
 # --------------------------------------------------------------
+# ===================================
+#         CORE UTILITIES
+# ===================================
+
+function validate_git_repo() {
+    # Validate that current directory is a git repository
+    # Returns: 0 if valid git repo, 1 if not
+    # Sets: GIT_ROOT variable to repository root path
+    local git_root
+    git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+
+    if [ $? -ne 0 ]; then
+        log_error "Not in a git repository"
+        return 1
+    fi
+
+    GIT_ROOT="$git_root"
+    return 0
+}
+
+function change_directory() {
+    # Safely change to a directory with confirmation logging
+    # Args: $1 - target directory path
+    #       $2 - optional description for logging
+    local target_dir="$1"
+    local description="${2:-directory}"
+
+    if cd "$target_dir" 2>/dev/null; then
+        log_ok "✅ Changed to $description: $target_dir"
+        return 0
+    else
+        log_error "❌ Failed to change to $description: $target_dir"
+        return 1
+    fi
+}
+
+function process_submodules_recursive() {
+    # Process all submodules recursively with a given function
+    # Args: $1 - function name to call for each repo
+    #       $2 - message to pass to the function
+    local process_func="$1"
+    local message="$2"
+
+    # Store the original directory
+    local original_dir=$(pwd)
+
+    # Check if there are submodules
+    if [ -f .gitmodules ]; then
+        log_info "🔍 Found submodules, processing recursively..."
+
+        # Get all submodule paths
+        git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
+            "$process_func" "$submodule_path" "$message"
+        done
+
+        # Return to original directory
+        cd "$original_dir"
+    else
+        log_info "ℹ️  No submodules found"
+    fi
+
+    # Return to original directory
+    cd "$original_dir"
+}
+
+function validate_params() {
+    # Validate function parameters
+    # Args: $1 - expected number of parameters
+    #       $2 - function name for error messages
+    #       remaining args - parameter descriptions
+    local expected_count="$1"
+    local func_name="$2"
+    shift 2
+
+    if [ $# -ne "$expected_count" ]; then
+        echo "$func_name - ${*:1}"
+        echo ""
+        echo "USAGE:"
+        echo "  $func_name ${*:2}"
+        echo ""
+        if [ $# -gt 0 ]; then
+            echo "PARAMETERS:"
+            local i=1
+            for param_desc in "$@"; do
+                echo "  \$$i    $param_desc"
+                ((i++))
+            done
+        fi
+        return 1
+    fi
+    return 0
+}
+
+function just_commit_push() {
+    # Common logic for just_commit and just_push functions
+    # Args: $1 - commit message
+    #       $2 - whether to push (true/false)
+    local message="$1"
+    local should_push="$2"
+
+    # Validate git repository
+    if ! validate_git_repo; then
+        return 1
+    fi
+
+    git add .
+    git commit -m "/// $message"
+
+    if [ "$should_push" = "true" ]; then
+        git push
+    fi
+
+    log_ok "🦝: $message"
+}
+
 function just_amend() {
+    git add .
     git commit --amend --no-edit
 }
 
@@ -115,18 +231,7 @@ function gl_quick_jump() {
     #   - Displays confirmation message with the new location
     #   - Returns error code 1 if index is invalid or out of range
 
-    if [[ $# -ne 1 ]]; then
-        echo "gl_quick_jump - Navigate directly to submodule by index number"
-        echo ""
-        echo "USAGE:"
-        echo "  gl_quick_jump <number>"
-        echo ""
-        echo "PARAMETERS:"
-        echo "  number    Zero-based index of the submodule to navigate to"
-        echo ""
-        echo "EXAMPLES:"
-        echo "  gl_quick_jump 0      # Jump to root directory (index 0)"
-        echo "  gl_quick_jump 5      # Jump to submodule at index 5"
+    if ! validate_params 1 "gl_quick_jump" "Zero-based index of the submodule to navigate to"; then
         return 1
     fi
 
@@ -139,16 +244,13 @@ function gl_quick_jump() {
         return 1
     fi
 
-    local git_root
-    git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-
-    if [ $? -ne 0 ]; then
-        log_error "Not in a git repository"
+    # Validate git repository
+    if ! validate_git_repo; then
         return 1
     fi
 
     # Get all paths using global arrays
-    gl_collect_all_submodules "$git_root" >/dev/null
+    gl_collect_all_submodules "$GIT_ROOT" >/dev/null
 
     # Validate target number range
     if [ "$target_num" -ge ${#GL_PATHS[@]} ]; then
@@ -158,8 +260,7 @@ function gl_quick_jump() {
     fi
 
     # Jump to target
-    cd "${GL_PATHS[$target_num]}" || return 1
-    log_ok "✅ Jumped to: ${GL_PATHS[$target_num]}"
+    change_directory "${GL_PATHS[$target_num]}" "submodule" || return 1
     log_info "📍 Path: ${GL_RELATIVE_PATHS[$target_num]}"
 }
 
@@ -183,19 +284,7 @@ function gl_search() {
     #   - Displays both the full path and matched relative path
     #   - Returns error code 1 if no matches are found
 
-    if [[ $# -ne 1 ]]; then
-        echo "gl_search - Search for and navigate to submodule by keyword"
-        echo ""
-        echo "USAGE:"
-        echo "  gl_search <keyword>"
-        echo ""
-        echo "PARAMETERS:"
-        echo "  keyword   Search term to match against submodule relative paths"
-        echo ""
-        echo "EXAMPLES:"
-        echo "  gl_search engine     # Find submodule with 'engine' in its path"
-        echo "  gl_search ui/core    # Find submodule with 'ui/core' in its path"
-        echo "  gl_search test       # Find first submodule containing 'test'"
+    if ! validate_params 1 "gl_search" "Search term to match against submodule relative paths"; then
         return 1
     fi
 
@@ -208,22 +297,18 @@ function gl_search() {
         return 1
     fi
 
-    local git_root
-    git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-
-    if [ $? -ne 0 ]; then
-        log_error "Not in a git repository"
+    # Validate git repository
+    if ! validate_git_repo; then
         return 1
     fi
 
     # Get all paths using global arrays
-    gl_collect_all_submodules "$git_root" >/dev/null
+    gl_collect_all_submodules "$GIT_ROOT" >/dev/null
 
     # Search for first match
     for i in "${!GL_RELATIVE_PATHS[@]}"; do
         if [[ "${GL_RELATIVE_PATHS[$i]}" == *"$keyword"* ]]; then
-            cd "${GL_PATHS[$i]}" || return 1
-            log_ok "✅ Found and jumped to: ${GL_PATHS[$i]}"
+            change_directory "${GL_PATHS[$i]}" "submodule" || return 1
             log_info "🔍 Matched: ${GL_RELATIVE_PATHS[$i]}"
             log_info "📍 Index: $i"
             return 0
@@ -261,17 +346,14 @@ function gl_interactive() {
     #   (1) submodule/path
     #   (2) another/submodule
 
-    local git_root
-    git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-
-    if [ $? -ne 0 ]; then
-        log_error "Not in a git repository"
+    # Validate git repository
+    if ! validate_git_repo; then
         return 1
     fi
 
     # Collect and display all submodules
     log_info "🔍 Scanning for git submodules..."
-    gl_collect_all_submodules "$git_root"
+    gl_collect_all_submodules "$GIT_ROOT"
 
     # If no submodules found
     if [ ${#GL_PATHS[@]} -eq 1 ]; then
@@ -302,8 +384,7 @@ function gl_interactive() {
     # Handle numeric selection
     if [[ "$selection" =~ ^[0-9]+$ ]]; then
         if [ "$selection" -lt ${#GL_PATHS[@]} ]; then
-            cd "${GL_PATHS[$selection]}" || return 1
-            log_ok "✅ Changed directory to: ${GL_PATHS[$selection]}"
+            change_directory "${GL_PATHS[$selection]}" "submodule" || return 1
             log_info "📍 Path: ${GL_RELATIVE_PATHS[$selection]}"
         else
             log_error "❌ Invalid selection: $selection (valid range: 0-$((${#GL_PATHS[@]} - 1)))"
@@ -337,14 +418,7 @@ function gl_collect_all_submodules() {
     #   GL_RELATIVE_PATHS[] - Relative paths from repository root
     #   GL_LEVELS[]         - Nesting level of each submodule (0=root)
 
-    if [[ $# -ne 1 ]]; then
-        echo "gl_collect_all_submodules - Recursively discover git submodules"
-        echo ""
-        echo "USAGE:"
-        echo "  gl_collect_all_submodules <git_root>"
-        echo ""
-        echo "PARAMETERS:"
-        echo "  git_root  Root directory of the git repository to scan"
+    if ! validate_params 1 "gl_collect_all_submodules" "Root directory of the git repository to scan"; then
         return 1
     fi
 
@@ -395,15 +469,7 @@ function gl_find_submodules_recursive() {
     #   - Prevents duplicate entries in the global arrays
     #   - Handles nested submodules by incrementing the level counter
 
-    if [[ $# -ne 2 ]]; then
-        echo "gl_find_submodules_recursive - Recursively find git submodules"
-        echo ""
-        echo "USAGE:"
-        echo "  gl_find_submodules_recursive <current_dir> <level>"
-        echo ""
-        echo "PARAMETERS:"
-        echo "  current_dir  Directory to scan for submodules"
-        echo "  level        Current nesting level (used for organization)"
+    if ! validate_params 2 "gl_find_submodules_recursive" "Directory to scan for submodules" "Current nesting level"; then
         return 1
     fi
 
@@ -528,17 +594,22 @@ function gl_display_by_levels() {
 }
 
 function just_commit() {
-    message="${@:-"just committed"}"
-    git add . && git commit -m "/// $message" && log_ok "🦝: $message"
+    local message="${@:-"just committed"}"
+    just_commit_push "$message" "false"
 }
 
 function just_push() {
-    message="${@:-"just pushed"}"
-    git add . && git commit -m "/// $message" && git push && log_ok "🦝: $message"
+    local message="${@:-"just pushed"}"
+    just_commit_push "$message" "true"
 }
 
 function just_commit_all() {
     message="${@:-"just committed"}"
+
+    # Validate git repository
+    if ! validate_git_repo; then
+        return 1
+    fi
 
     # Function to commit in a single repository
     commit_repo() {
@@ -561,38 +632,28 @@ function just_commit_all() {
     }
 
     # Store the original directory
-    original_dir=$(pwd)
+    local original_dir=$(pwd)
 
     # Commit in main repository first
     commit_repo "$original_dir" "$message"
 
-    # Check if there are submodules
-    if [ -f .gitmodules ]; then
-        log_info "🔍 Found submodules, processing recursively..."
+    # Process all submodules
+    process_submodules_recursive "commit_repo" "$message"
 
-        # Get all submodule paths
-        git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
-            commit_repo "$submodule_path" "$message"
-        done
-
-        # Return to original directory
-        cd "$original_dir"
-
-        # Check if submodule commits created changes in main repo
-        if ! git diff --quiet; then
-            log_info "📦 Committing submodule updates in main repository..."
-            git add . && git commit -m "/// Updated submodules: $message" && log_ok "🦝: Updated submodules: $message"
-        fi
-    else
-        echo "ℹ️  No submodules found"
+    # Check if submodule commits created changes in main repo
+    if ! git diff --quiet; then
+        log_info "📦 Committing submodule updates in main repository..."
+        git add . && git commit -m "/// Updated submodules: $message" && log_ok "🦝: Updated submodules: $message"
     fi
-
-    # Return to original directory
-    cd "$original_dir"
 }
 
 function just_push_all() {
     local message="${@:-"just pushed"}"
+
+    # Validate git repository
+    if ! validate_git_repo; then
+        return 1
+    fi
 
     # Function to commit and push in a single repository
     push_repo() {
@@ -629,40 +690,30 @@ function just_push_all() {
     # Process main repository first
     push_repo "$original_dir" "$message"
 
-    # Check if there are submodules
-    if [ -f .gitmodules ]; then
-        log_info "🔍 Found submodules, processing recursively..."
+    # Process all submodules
+    process_submodules_recursive "push_repo" "$message"
 
-        # Process all submodules
-        git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
-            push_repo "$submodule_path" "$message"
-        done
-
-        # Return to original directory
-        cd "$original_dir"
-
-        # Check if submodule commits created changes in main repo
-        if ! git diff --quiet; then
-            log_info "📦 Committing and pushing submodule updates in main repository..."
-            git add . && git commit -m "/// Updated submodules: $message" && git push && log_ok "🦝: Updated submodules: $message"
-        else
-            # Check for unpushed commits in main repo
-            local unpushed=$(git log --oneline @{u}.. 2>/dev/null | wc -l)
-            if [ "$unpushed" -gt 0 ]; then
-                log_info "📤 Pushing unpushed commits in main repository..."
-                git push && log_ok "🦝 Main repo pushed"
-            fi
-        fi
+    # Check if submodule commits created changes in main repo
+    if ! git diff --quiet; then
+        log_info "📦 Committing and pushing submodule updates in main repository..."
+        git add . && git commit -m "/// Updated submodules: $message" && git push && log_ok "🦝: Updated submodules: $message"
     else
-        echo "ℹ️  No submodules found"
+        # Check for unpushed commits in main repo
+        local unpushed=$(git log --oneline @{u}.. 2>/dev/null | wc -l)
+        if [ "$unpushed" -gt 0 ]; then
+            log_info "📤 Pushing unpushed commits in main repository..."
+            git push && log_ok "🦝 Main repo pushed"
+        fi
     fi
-
-    # Return to original directory
-    cd "$original_dir"
 }
 
 function find_just_committed_all() {
     local show_details="${1:-false}"
+
+    # Validate git repository
+    if ! validate_git_repo; then
+        return 1
+    fi
 
     # Function to check current commit in a repository
     check_repo() {
@@ -705,16 +756,14 @@ function find_just_committed_all() {
     fi
 
     # Check all submodules recursively
-    if [ -f .gitmodules ]; then
-        git submodule foreach --recursive --quiet 'echo $PWD' | while read -r submodule_path; do
-            if check_repo "$submodule_path"; then
-                ((found_count++))
-            fi
-        done
-    fi
+    check_submodule_repo() {
+        local repo_path="$1"
+        if check_repo "$repo_path"; then
+            ((found_count++))
+        fi
+    }
 
-    # Return to original directory
-    cd "$original_dir"
+    process_submodules_recursive "check_submodule_repo" ""
 
     log_info "📊 Found $found_count repositories with '/// ' commits at current HEAD"
 }
@@ -729,6 +778,11 @@ function remove_submodule() {
 
     if [ ! -d "$submodule_path" ]; then
         log_error "Submodule path '$submodule_path' does not exist"
+        return 1
+    fi
+
+    # Validate git repository
+    if ! validate_git_repo; then
         return 1
     fi
 
