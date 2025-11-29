@@ -18,12 +18,7 @@ if [ ! -e "$CONFIG_DIR" ]; then
     exit 0
 fi
 
-# Skip if it's already a symlink - we don't want to archive symlinks, just leave them
-if [ -L "$CONFIG_DIR" ]; then
-    DISPLAY_DIR="${CONFIG_DIR//$HOME/~}"
-    echo "Info: $CONFIG_DIR is already a symlink, skipping archive"
-    exit 0
-fi
+# Archive even if it's a symlink
 
 # Archive the file/directory: create archive dir, generate timestamp, move to archive
 mkdir -p "$ARCHIVE_DIR"
