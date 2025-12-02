@@ -127,6 +127,20 @@ function slugify_docker() {
     echo "$slug"
 }
 
+function validate_docker_image_for_extraction() {
+    local func_name="$1"
+    local image="$2"
+    if ! validate_params 1 "$func_name" "docker image name"; then
+        return 1
+    fi
+    if ! docker image inspect "$image" &>/dev/null; then
+        log_error "❌ Image '$image' not found locally"
+        return 1
+    fi
+    log_info "🔍 Extracting Dockerfile content from: $image"
+    return 0
+}
+
 # ===================================
 #         DOCKER OPERATIONS
 # ===================================
@@ -236,32 +250,7 @@ function hotlogs() {
 }
 
 
-function get_dockerfile_content() {
-    # Extract Dockerfile content from a docker image
-    # Args: $1 - image name
-    if ! validate_params 1 "get_dockerfile_content" "docker image name"; then
-        return 1
-    fi
 
-    local image="$1"
-
-    # Check if image exists
-    if ! docker image inspect "$image" &>/dev/null; then
-        log_error "❌ Image '$image' not found locally"
-        return 1
-    fi
-
-    log_info "🔍 Extracting Dockerfile content from: $image"
-    docker history --no-trunc "$image" \
-        | tac \
-        | tr -s ' ' \
-        | cut -d " " -f 5- \
-        | sed 's,^/bin/sh -c #(nop) ,,g' \
-        | sed 's,^/bin/sh -c,RUN,g' \
-        | sed 's, && ,\n  & ,g' \
-        | sed 's,\s*[0-9]*[\.]*[0-9]*\s*[kMG]*B\s*$,,g' \
-        | head -n -1
-}
 
 function send_docker_image_via_pipe() {
     # Send a docker image to a remote server via SSH pipe
@@ -303,23 +292,25 @@ function send_docker_image_via_pipe() {
 # ===================================
 #         IMAGE OPERATIONS
 # ===================================
-
 function get_dockerfile_content() {
     # Extract Dockerfile content from a docker image
     # Args: $1 - image name
-    if ! validate_params 1 "get_dockerfile_content" "docker image name"; then
+    if ! validate_docker_image_for_extraction "get_dockerfile_content" "$1"; then
         return 1
     fi
 
     local image="$1"
+    dfimage "$image"
+}
 
-    # Check if image exists
-    if ! docker image inspect "$image" &>/dev/null; then
-        log_error "❌ Image '$image' not found locally"
+function get_dockerfile_content_legacy() {
+    # Extract Dockerfile content from a docker image
+    # Args: $1 - image name
+    if ! validate_docker_image_for_extraction "get_dockerfile_content_legacy" "$1"; then
         return 1
     fi
 
-    log_info "🔍 Extracting Dockerfile content from: $image"
+    local image="$1"
     docker history --no-trunc "$image" \
         | tac \
         | tr -s ' ' \
@@ -328,7 +319,7 @@ function get_dockerfile_content() {
         | sed 's,^/bin/sh -c,RUN,g' \
         | sed 's, && ,\n  & ,g' \
         | sed 's,\s*[0-9]*[\.]*[0-9]*\s*[kMG]*B\s*$,,g' \
-        | head -n -1
+        | sed '$d'
 }
 
 # ===================================
