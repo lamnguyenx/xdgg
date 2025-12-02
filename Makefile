@@ -28,68 +28,66 @@ clean:
 	@echo "Cleaned symlinks and created empty config directories"
 
 helix:
-	@bash ./local/archive.sh ~/.config/helix
+	@bash ./bach_lite.sh archive ~/.config/helix
 	@ln -sf "$(shell pwd)/dot-config/helix" ~/.config/helix
-	@bash ./local/echo_banner.sh "Helix"
+	@bash ./bach_lite.sh echo_banner "Helix"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/helix
 
 tmux:
-	@bash ./local/archive.sh ~/.config/tmux
-	@bash ./local/archive.sh ~/.tmux.conf
+	@bash ./bach_lite.sh archive ~/.config/tmux
+	@bash ./bach_lite.sh archive ~/.tmux.conf
 	@ln -sf "$(shell pwd)/dot-config/tmux" ~/.config/tmux
 	@ln -sf "$(shell pwd)/dot-config/tmux/tmux.conf" ~/.tmux.conf
-	@bash ./local/echo_banner.sh "Tmux"
+	@bash ./bach_lite.sh echo_banner "Tmux"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/tmux ~/.tmux.conf
 	@-tmux source-file ~/.tmux.conf 2>/dev/null || true
 
 termux:
-	@bash ./local/archive.sh ~/.termux
+	@bash ./bach_lite.sh archive ~/.termux
 	@ln -sf "$(shell pwd)/dot-termux" ~/.termux
-	@bash ./local/echo_banner.sh "Termux"
+	@bash ./bach_lite.sh echo_banner "Termux"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.termux
 
 lazygit:
 	@mkdir -p "$(shell lazygit --print-config-dir)"
 	@ln -sf "$(shell pwd)/dot-config/lazygit/config.yml" "$(shell lazygit --print-config-dir)/config.yml"
-	@bash ./local/echo_banner.sh "Lazygit"
+	@bash ./bach_lite.sh echo_banner "Lazygit"
 	@echo "Symlinks:"
 	@ls -la "$(shell lazygit --print-config-dir)/config.yml"
 
 amp:
-	@bash ./local/archive.sh ~/.config/amp
+	@bash ./bach_lite.sh archive ~/.config/amp
 	@mkdir -p ~/.config/amp
 	@ln -sf "$(shell pwd)/__submodules__/humanlayer2/.claude/commands" ~/.config/amp/commands
-	@bash ./local/echo_banner.sh "Amp"
+	@bash ./bach_lite.sh echo_banner "Amp"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/amp
 
 opencode:
-	@bash ./local/archive.sh ~/.config/opencode/command
+	@bash ./bach_lite.sh archive ~/.config/opencode/command
 	@mkdir -p ~/.config/opencode
 	@ln -sf "$(shell pwd)/__submodules__/humanlayer2/.claude/commands" ~/.config/opencode/command
-	@bash ./local/echo_banner.sh "OpenCode"
+	@bash ./bach_lite.sh echo_banner "OpenCode"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/opencode/command
 
 yazi:
-	@bash ./local/archive.sh ~/.config/yazi
+	@bash ./bach_lite.sh archive ~/.config/yazi
 	@ln -sf "$(shell pwd)/dot-config/yazi" ~/.config/yazi
-	@bash ./local/echo_banner.sh "Yazi"
+	@bash ./bach_lite.sh echo_banner "Yazi"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/yazi
 
 tmux-powerline:
-	@bash ./local/archive.sh ~/.config/tmux-powerline
+	@bash ./bach_lite.sh archive ~/.config/tmux-powerline
 	@ln -sf "$(shell pwd)/dot-config/tmux-powerline" ~/.config/tmux-powerline
-	@bash ./local/echo_banner.sh "Tmux Powerline"
+	@bash ./bach_lite.sh echo_banner "Tmux Powerline"
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/tmux-powerline
 
 firefox:
-	@bash ./local/install_firefox_custom_css.sh "$(shell pwd)/dot-config/firefox/chrome/userChrome.css"
+	@./local/install_firefox_custom_css.sh
 
-bax:
-	@bash ./local/install_bax.sh

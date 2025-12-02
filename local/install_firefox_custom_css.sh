@@ -7,9 +7,13 @@
 
 set -Eeuo pipefail
 
-# Source bax logging functions for nice output
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../dot-bashrc/bax/logging.sh"
+# Define logging functions
+ANSIFmt__reset='\033[00m'
+ANSIFmt__red='\033[31m'
+ANSIFmt__green='\033[32m'
+
+function echo_green() { printf "$ANSIFmt__green$*$ANSIFmt__reset\n"; }
+function echo_red()   { printf "$ANSIFmt__red$*$ANSIFmt__reset\n"; }
 
 # Firefox base directory on macOS (profiles.ini contains Paths starting with "Profiles/")
 FIREFOX_BASE_DIR="$HOME/Library/Application Support/Firefox"
@@ -17,14 +21,14 @@ PROFILES_INI="$FIREFOX_BASE_DIR/profiles.ini"
 
 # Check if Firefox base directory exists
 if [[ ! -d "$FIREFOX_BASE_DIR" ]]; then
-    log_error "Firefox directory not found at $FIREFOX_BASE_DIR"
-    log_error "Make sure Firefox is installed and has been run at least once."
+    echo_red "Firefox directory not found at $FIREFOX_BASE_DIR"
+    echo_red "Make sure Firefox is installed and has been run at least once."
     exit 1
 fi
 
 # Check if profiles.ini exists
 if [[ ! -f "$PROFILES_INI" ]]; then
-    log_error "Firefox profiles.ini not found at $PROFILES_INI"
+    echo_red "Firefox profiles.ini not found at $PROFILES_INI"
     exit 1
 fi
 
@@ -47,7 +51,7 @@ if [[ ! -f "$USERCHROME_SRC" ]]; then
     exit 1
 fi
 
-log_info "Found Firefox profiles:"
+echo_green "Found Firefox profiles:"
 echo "$PROFILE_PATHS" | sed "s|^|$FIREFOX_BASE_DIR/|" | sed 's/^/  /'
 echo ""
 
@@ -60,11 +64,11 @@ echo "$PROFILE_PATHS" | while read -r PROFILE_PATH; do
         PROFILE_DIR="$PROFILE_PATH"
     fi
 
-    log_info "Processing profile: $(basename "$PROFILE_DIR")"
+    echo_green "Processing profile: $(basename "$PROFILE_DIR")"
 
     # Check if profile directory exists
     if [[ ! -d "$PROFILE_DIR" ]]; then
-        log_warning "Profile directory not found at $PROFILE_DIR, skipping"
+        echo_red "Profile directory not found at $PROFILE_DIR, skipping"
         continue
     fi
 
@@ -72,7 +76,7 @@ echo "$PROFILE_PATHS" | while read -r PROFILE_PATH; do
     CHROME_DIR="$PROFILE_DIR/chrome"
     if [[ ! -d "$CHROME_DIR" ]]; then
         mkdir -p "$CHROME_DIR"
-        log_info "  Created chrome directory: $CHROME_DIR"
+        echo_green "  Created chrome directory: $CHROME_DIR"
     fi
 
     # Archive existing userChrome.css (archive.sh handles existence and symlink checks)
@@ -81,15 +85,15 @@ echo "$PROFILE_PATHS" | while read -r PROFILE_PATH; do
 
     # Create symlink
     ln -sf "$USERCHROME_SRC" "$USERCHROME_DEST"
-    log_ok "  Created symlink: $(ls -la "$USERCHROME_DEST" | sed "s|$HOME|~|g")"
+    echo_green "  Created symlink: $(ls -la "$USERCHROME_DEST" | sed "s|$HOME|~|g")"
     echo ""
 done
 
-log_ok "Firefox userChrome.css installed to all profiles successfully!"
-log_info "Restart Firefox (all versions) to apply changes."
+echo_green "Firefox userChrome.css installed to all profiles successfully!"
+echo_green "Restart Firefox (all versions) to apply changes."
 echo ""
-log_warning "⚠️  IMPORTANT: Enable userChrome.css support in Firefox"
-log_info "   1. Open Firefox and go to about:config"
-log_info "   2. Search for: toolkit.legacyUserProfileCustomizations.stylesheets"
-log_info "   3. Set the value to: true"
-log_info "   4. Restart Firefox completely"
+echo_red "⚠️  IMPORTANT: Enable userChrome.css support in Firefox"
+echo_green "   1. Open Firefox and go to about:config"
+echo_green "   2. Search for: toolkit.legacyUserProfileCustomizations.stylesheets"
+echo_green "   3. Set the value to: true"
+echo_green "   4. Restart Firefox completely"
