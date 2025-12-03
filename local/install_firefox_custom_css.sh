@@ -79,9 +79,9 @@ echo "$PROFILE_PATHS" | while read -r PROFILE_PATH; do
         echo_green "  Created chrome directory: $CHROME_DIR"
     fi
 
-    # Archive existing userChrome.css (archive.sh handles existence and symlink checks)
+    # Archive existing userChrome.css (bach_lite.sh archive handles existence and symlink checks)
     USERCHROME_DEST="$CHROME_DIR/userChrome.css"
-    "$SCRIPT_DIR/archive.sh" "$USERCHROME_DEST"
+    "$SCRIPT_DIR/../bach_lite.sh" archive "$USERCHROME_DEST"
 
     # Create symlink
     ln -sf "$USERCHROME_SRC" "$USERCHROME_DEST"

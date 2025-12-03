@@ -66,14 +66,6 @@ amp:
 	@echo "Symlinks:"
 	@bash ./local/show_symlinks.sh ~/.config/amp
 
-opencode:
-	@bash ./bach_lite.sh archive ~/.config/opencode/command
-	@mkdir -p ~/.config/opencode
-	@ln -sf "$(shell pwd)/__submodules__/humanlayer2/.claude/commands" ~/.config/opencode/command
-	@bash ./bach_lite.sh echo_banner "OpenCode"
-	@echo "Symlinks:"
-	@bash ./local/show_symlinks.sh ~/.config/opencode/command
-
 yazi:
 	@bash ./bach_lite.sh archive ~/.config/yazi
 	@ln -sf "$(shell pwd)/dot-config/yazi" ~/.config/yazi
