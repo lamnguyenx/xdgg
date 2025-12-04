@@ -2,9 +2,7 @@
 
 This project contains XDG Base Directory specification-compliant configuration and setup files for various TUI (Text User Interface) tools designed for CLI-based development. Built to work seamlessly across different environments, including Android via Termux.
 
-## Overview
-
-A collection of personal dotfiles and configurations for essential CLI development tools, enabling efficient terminal-based workflows on any platform.
+> **Summary**: A collection of personal dotfiles and configurations for essential CLI development tools, enabling efficient terminal-based workflows on any platform.
 
 ## TUI Tools
 
