@@ -83,3 +83,6 @@ tmux-powerline:
 firefox:
 	@./local/install_firefox_custom_css.sh
 
+rg ripgrep:
+	@bash ./bach_lite.sh archive ~/.config/yazi
+	@ln -sf "$(shell pwd)/dot-ripgreprc" ~/.ripgreprc

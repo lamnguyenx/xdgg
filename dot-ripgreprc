@@ -1,0 +1,3 @@
+--follow
+--glob=!*/_refs/**
+--glob=!_refs/**/_refs/**
